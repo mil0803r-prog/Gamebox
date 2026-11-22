@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { buildCarModel } from '../cars/CarModel.js';
+import { buildCarModel } from '../../cars/CarModel.js';
 
 // Vista previa 3D giratoria de un auto (pequeño renderer propio, solo en menús)
 export class CarPreview {
@@ -13,8 +13,8 @@ export class CarPreview {
     const d = new THREE.DirectionalLight(0xffffff, 1.5); d.position.set(3, 5, 4); this.scene.add(d);
     const floor = new THREE.Mesh(new THREE.CircleGeometry(3.4, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 }));
     this.scene.add(floor);
-    this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-    this.camera.position.set(6.5, 3.6, 7.5);
+    this.camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+    this.camera.position.set(5.2, 2.7, 6.0);
     this.camera.lookAt(0, 0.6, 0);
     this.angle = 0.6;
     this.model = null;

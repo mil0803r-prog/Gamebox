@@ -1,9 +1,12 @@
-import './ui/styles.css';
+import './ui/styles/base.css';
+import './ui/styles/hud.css';
+import './ui/styles/menus.css';
+import './ui/styles/touch.css';
 import { Game } from './game/Game.js';
-import { UI } from './ui/UI.js';
+import { UIManager } from './ui/UIManager.js';
 
 const game = new Game(document.getElementById('app'));
-const ui = new UI(game);
+const ui = new UIManager(game);
 window.__game = game;
 window.__ui = ui;
 

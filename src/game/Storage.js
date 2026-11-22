@@ -9,7 +9,7 @@ function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); 
 
 export const DEFAULT_SETTINGS = {
   laps: 3, items: false, difficulty: 1, rivals1p: 3, rivals2p: 0,
-  autoAccel: true, split: 'auto', quality: 'auto', music: true, sfx: true, muted: false, showFps: false,
+  autoAccel: true, showKeys: true, split: 'auto', quality: 'auto', music: true, sfx: true, muted: false, showFps: false,
   p1: { car: 0, color: 0 }, p2: { car: 1, color: 1 }, track: 0,
 };
 

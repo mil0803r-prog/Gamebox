@@ -1,0 +1,25 @@
+:root {
+  --pink: #ff2bd6; --cyan: #00e5ff; --yellow: #ffe14d; --orange: #ff8a1f; --purple: #c04bff; --green: #2fe07a;
+  --bg: #0b0618; --panel: rgba(14, 8, 34, 0.72); --panel-solid: #140a2e; --line: rgba(255, 255, 255, 0.14); --text: #fff; --muted: rgba(255,255,255,0.65);
+  --font: 'Trebuchet MS', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --display: 'Arial Black', 'Segoe UI Black', 'Trebuchet MS', system-ui, sans-serif;
+  --radius: 16px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text);
+  font-family: var(--font); touch-action: none; overscroll-behavior: none;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+#app, #app canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#hud, #touch, #ui { position: fixed; inset: 0; pointer-events: none; }
+#touch { z-index: 5; }
+#ui { z-index: 10; }
+.hidden { display: none !important; }
+kbd {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 1.9em; height: 1.9em; padding: 0 0.45em; margin: 0 0.12em;
+  font-family: var(--font); font-weight: 800; font-size: 0.85em; color: #fff; border-radius: 0.4em;
+  background: linear-gradient(180deg, #4a3c7a, #2a1f4e); border: 1px solid rgba(255,255,255,0.35); box-shadow: 0 0.18em 0 #120a2a; vertical-align: middle;
+}
+@keyframes pulse { from { filter: brightness(1); } to { filter: brightness(1.45); } }
+@keyframes pop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }

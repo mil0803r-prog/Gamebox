@@ -198,6 +198,7 @@ export function buildTrackScene(track, scene, quality = 2) {
   const env = buildEnvironment(track, theme, group, quality);
 
   return {
+    sky,
     group, theme, padTex: ptex, env,
     update(dt, t) {
       ptex.offset.y -= dt * 2.5;

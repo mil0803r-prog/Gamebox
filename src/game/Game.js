@@ -3,18 +3,23 @@ import { CONFIG } from '../config.js';
 import { Track } from '../tracks/Track.js';
 import { TRACKS } from '../tracks/trackData.js';
 import { buildTrackScene } from '../tracks/TrackBuilder.js';
+import { CARS, COLORS } from '../cars/carData.js';
 import { Race } from './Race.js';
 import { CameraRig } from './CameraRig.js';
-import { InputManager } from '../input/Input.js';
-import { PlayerHUD, COUNT_TEXT } from '../ui/HUD.js';
+import { DemoCamera } from './DemoCamera.js';
 import { Effects } from './Effects.js';
 import { AISystem } from './AI.js';
 import { Items } from './Items.js';
 import { Quality } from './Quality.js';
 import { Settings } from './Storage.js';
-import { AudioSys } from '../audio/Audio.js';
+import { splitMode, computeViews } from './Viewports.js';
+import { handleRaceEvents } from './RaceFeedback.js';
+import { InputManager } from '../input/Input.js';
 import { TouchControls } from '../input/Touch.js';
+import { AudioSys } from '../audio/Audio.js';
+import { PlayerHUD } from '../ui/hud/HUD.js';
 
+// Núcleo del juego: renderer, bucle principal y ciclo de vida de la carrera
 export class Game {
   constructor(container) {
     this.container = container;
@@ -24,22 +29,23 @@ export class Game {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(this.renderer.domElement);
     this.scene = new THREE.Scene();
+
     this.input = new InputManager();
+    this.touch = new TouchControls(document.getElementById('touch'), this.input);
     this.effects = new Effects(this.scene, 2);
     this.ai = new AISystem();
+    this.audio = new AudioSys(Settings.data);
     this.items = null;
+
     this.hudLayer = document.getElementById('hud');
     this.hudLayer.classList.toggle('touch', this.isTouch);
     this.settings = { split: Settings.data.split, laps: CONFIG.race.laps };
-    this.audio = new AudioSys(Settings.data);
-    this.touch = new TouchControls(document.getElementById('touch'), this.input);
     this.pixelRatio = Math.min(window.devicePixelRatio || 1, this.isTouch ? 1.5 : 2);
     this.state = 'idle';
-    this.views = [];
-    this.huds = [];
-    this.rigs = [];
+    this.views = []; this.huds = []; this.rigs = [];
     this.clock = new THREE.Clock();
     this.listeners = {};
+
     window.addEventListener('resize', () => this.resize());
     window.addEventListener('orientationchange', () => setTimeout(() => this.resize(), 200));
     this.resize();
@@ -47,9 +53,11 @@ export class Game {
     this.renderer.setAnimationLoop(() => this.frame());
   }
 
+  // ------------------------------------------------------------ eventos simples
   on(ev, fn) { (this.listeners[ev] ||= []).push(fn); }
   emit(ev, data) { (this.listeners[ev] || []).forEach(f => f(data)); }
 
+  // ------------------------------------------------------------ pantalla
   setPixelRatio(pr) {
     this.pixelRatio = pr;
     this.renderer.setPixelRatio(pr);
@@ -63,33 +71,23 @@ export class Game {
     this.computeViews();
   }
 
-  splitMode() {
-    const s = this.settings.split;
-    if (s === 'horizontal') return 'rows';   // uno arriba, otro abajo
-    if (s === 'vertical') return 'cols';     // lado a lado
-    const portrait = this.H > this.W;
-    if (this.isTouch) return portrait ? 'rows' : 'cols';
-    return 'rows';
-  }
+  splitMode() { return splitMode(this.settings.split, this.W, this.H, this.isTouch); }
 
   computeViews() {
-    const n = this.rigs.length || 1;
-    const W = this.W, H = this.H;
-    if (n === 1) this.views = [{ x: 0, y: 0, w: W, h: H }];
-    else if (this.splitMode() === 'rows') {
-      const h = Math.floor(H / 2);
-      this.views = [{ x: 0, y: 0, w: W, h: h - 1 }, { x: 0, y: h + 1, w: W, h: H - h - 1 }];
-    } else {
-      const w = Math.floor(W / 2);
-      this.views = [{ x: 0, y: 0, w: w - 1, h: H }, { x: w + 1, y: 0, w: W - w - 1, h: H }];
-    }
+    this.views = computeViews(this.rigs.length || 1, this.splitMode(), this.W, this.H);
     this.huds.forEach((h, i) => this.views[i] && h.layout(this.views[i]));
-    this.rigs.forEach((r, i) => { const v = this.views[i]; if (v) { r.camera.aspect = v.w / v.h; r.camera.updateProjectionMatrix(); } });
-    if (this.touch && this.touch.enabled) this.touch.layout(this.views);
+    this.rigs.forEach((r, i) => {
+      const v = this.views[i];
+      if (v) { r.camera.aspect = v.w / v.h; r.camera.updateProjectionMatrix(); }
+    });
+    if (this.touch.enabled) this.touch.layout(this.views);
     this.emit('layout', this.views);
   }
 
-  // cfg: { trackId, laps, items, entries:[{car, color, human, humanIndex, aiLevel, name}] }
+  get isDemo() { return !!(this.race && this.cfg && this.cfg.demo); }
+
+  // ------------------------------------------------------------ carrera
+  // cfg: { trackId, laps, items, autoAccel, demo, entries:[{car, color, human, humanIndex, aiLevel, name}] }
   startRace(cfg) {
     this.endRace();
     this.cfg = cfg;
@@ -99,24 +97,42 @@ export class Game {
     this.race = new Race(this.track, cfg.entries, { laps: cfg.laps, items: cfg.items });
     for (const r of this.race.racers) this.scene.add(r.car.model.root);
     if (cfg.items) { this.items = new Items(this.scene, this.track); this.race.items = this.items; }
+
     const humans = this.race.racers.filter(r => r.human).sort((a, b) => a.humanIndex - b.humanIndex);
-    this.input.setHumans(humans.length);
-    this.rigs = humans.map((r, i) => {
-      const rig = new CameraRig(i);
-      rig.racer = r;
-      rig.snap(r.car);
-      this.scene.add(rig.camera);
-      return rig;
-    });
+    this.input.setHumans(Math.max(1, humans.length));
+    if (cfg.demo) {
+      this.race.time = 0; this.race.state = 'racing';
+      this.rigs = [new DemoCamera(this.race)];
+    } else {
+      this.rigs = humans.map((r, i) => {
+        const rig = new CameraRig(i);
+        rig.racer = r;
+        rig.snap(r.car);
+        return rig;
+      });
+    }
+    this.rigs.forEach(r => this.scene.add(r.camera));
     this.effects.attach(this.race, this.rigs, def.theme);
-    this.huds = humans.map(r => new PlayerHUD(this.hudLayer, this.track, r, { items: !!cfg.items }));
-    this.emit('raceCreated', this.race);
+    this.huds = humans.map(r => new PlayerHUD(this.hudLayer, this.track, r, { items: !!cfg.items, isTouch: this.isTouch, humans: humans.length }));
     this.computeViews();
-    if (this.isTouch) this.touch.build(this.views, { autoAccel: cfg.autoAccel !== false, items: !!cfg.items });
-    this.audio.attach(this.race, this.rigs, this.splitMode() === 'cols');
+    if (!cfg.demo) {
+      if (this.isTouch) this.touch.build(this.views, { autoAccel: cfg.autoAccel !== false, items: !!cfg.items });
+      this.audio.attach(this.race, this.rigs, this.splitMode() === 'cols');
+    }
+    this.emit('raceCreated', this.race);
     this.state = 'race';
     this.paused = false;
     this.clock.getDelta();
+  }
+
+  // Carrera de demostración (solo IA) que se ve detrás de los menús
+  startDemo() {
+    const t = TRACKS[Math.floor(Math.random() * TRACKS.length)];
+    const cols = [0, 1, 4, 2];
+    this.startRace({
+      demo: true, trackId: t.id, laps: 99, items: false,
+      entries: CARS.map((car, i) => ({ car, color: COLORS[cols[i]].hex, human: false, aiLevel: 2, name: car.name })),
+    });
   }
 
   endRace() {
@@ -128,22 +144,23 @@ export class Game {
     this.audio.detach();
     this.rigs.forEach(r => this.scene.remove(r.camera));
     this.huds.forEach(h => h.dispose());
-    this.huds = []; this.rigs = []; this.race = null; this.trackScene = null;
+    this.huds = []; this.rigs = []; this.race = null; this.trackScene = null; this.cfg = null;
     this.emit('raceEnded');
     this.state = 'idle';
   }
 
+  // ------------------------------------------------------------ bucle
   frame() {
     let dt = this.clock.getDelta();
-    if (this.state === 'race' && !this.paused && this.quality) this.quality.sample(dt);
+    if (this.state === 'race' && !this.paused) this.quality.sample(dt);
     if (dt > 0.05) dt = 0.05;
     this.emit('frame', dt);
     const inputs = this.input.poll();
     if (this.state === 'race' && this.race) {
-      if (inputs.pausePressed) this.emit('pauseToggle');
+      if (inputs.pausePressed && !this.isDemo) this.emit('pauseToggle');
       if (!this.paused) this.updateRace(dt, inputs);
       this.render();
-    } else if (this.state === 'idle') {
+    } else {
       this.renderer.setViewport(0, 0, this.W, this.H);
       this.renderer.setScissor(0, 0, this.W, this.H);
       this.renderer.setClearColor(0x0b0618);
@@ -157,53 +174,11 @@ export class Game {
     this.trackScene.update(dt, race.time);
     for (const rig of this.rigs) rig.update(dt, rig.racer.car);
     this.effects.update(dt);
+    if (this.isDemo) { race.events.length = 0; return; }
     this.audio.update(dt, race);
-    for (const h of this.huds) h.update(dt, race);
+    for (const h of this.huds) h.update(dt, race, this.input.kb);
     this.emit('raceTick', dt);
-    // eventos
-    for (const e of race.events) {
-      const isHuman = e.racer && e.racer.human;
-      if (e.type === 'count') this.audio.count(e.value);
-      if (e.type === 'lap' && isHuman) this.audio.lap(e.lap === race.laps);
-      if (e.type === 'finish' && isHuman) this.audio.fanfare();
-      if (e.type === 'itemGet' && isHuman) this.audio.item('get');
-      if (e.type === 'oilHit') this.audio.item('oil');
-      if ((e.type === 'itemUse' && e.item === 'shield') || e.type === 'shieldBlock') this.audio.item('shield');
-      if (e.type === 'oilHit' && isHuman) { const h = this.huds.find(h => h.racer === e.racer); h && h.flash('¡ACEITE!', '', 0.8, 'mini lvl2'); }
-      if (e.type === 'count') this.huds.forEach(h => h.flash(COUNT_TEXT[e.value], '', e.value === 0 ? 0.9 : 0.85, e.value === 0 ? 'go' : 'count'));
-      if (e.type === 'lap') {
-        const h = this.huds.find(h => h.racer === e.racer);
-        if (h) h.flash(e.lap === race.laps ? '¡VUELTA FINAL!' : `VUELTA ${e.lap}`, e.racer.lapTimes.length ? 'Última: ' + fmt(e.racer.lapTimes[e.racer.lapTimes.length - 1]) : '', 1.6, 'lap');
-      }
-      if (e.type === 'finish') {
-        const h = this.huds.find(h => h.racer === e.racer);
-        if (h) h.flash(`¡META! ${e.racer.place}º`, '', 99, 'finish');
-      }
-      this.emit('raceEvent', e);
-    }
-    race.events.length = 0;
-    for (const h of this.huds) {
-      const c = h.racer.car;
-      if (c.ev.miniTurbo) h.flash('¡MINI-TURBO!', '', 0.7, 'mini lvl' + c.ev.miniTurbo);
-    }
-  }
-
-  applySettings(s) {
-    this.settings.split = s.split;
-    this.computeViews();
-    this.quality.setMode(s.quality);
-    this.audio.applySettings();
-  }
-
-  // Depuración/pruebas: simula N segundos sin renderizar
-  simulate(seconds, inputsFn) {
-    const dt = 1 / 60;
-    const t0 = performance.now();
-    for (let t = 0; t < seconds; t += dt) {
-      const ins = inputsFn ? inputsFn(this.race) : [];
-      this.updateRace(dt, ins);
-    }
-    return (performance.now() - t0) / (seconds * 60); // ms por frame (CPU)
+    handleRaceEvents(this, race);
   }
 
   render() {
@@ -218,15 +193,24 @@ export class Game {
       const y = this.H - v.y - v.h; // WebGL: origen abajo
       r.setViewport(v.x, y, v.w, v.h);
       r.setScissor(v.x, y, v.w, v.h);
-      // el cielo sigue a la cámara
-      this.trackScene.group.children[0].position.copy(rig.camera.position);
+      this.trackScene.sky.position.copy(rig.camera.position); // el cielo sigue a la cámara
       this.effects.setViewHeight(v.h);
       r.render(this.scene, rig.camera);
     });
   }
-}
 
-function fmt(t) {
-  const m = Math.floor(t / 60), s = Math.floor(t % 60), c = Math.floor((t * 100) % 100);
-  return `${m}:${String(s).padStart(2, '0')}.${String(c).padStart(2, '0')}`;
+  applySettings(s) {
+    this.settings.split = s.split;
+    this.computeViews();
+    this.quality.setMode(s.quality);
+    this.audio.applySettings();
+  }
+
+  // Depuración/pruebas: simula N segundos sin renderizar; devuelve ms de CPU por frame
+  simulate(seconds, inputsFn) {
+    const dt = 1 / 60;
+    const t0 = performance.now();
+    for (let t = 0; t < seconds; t += dt) this.updateRace(dt, inputsFn ? inputsFn(this.race) : []);
+    return (performance.now() - t0) / (seconds * 60);
+  }
 }
