@@ -20,7 +20,7 @@ export class Car {
       turbo: STAT_SCALE.turbo[def.stats.turbo - 1],
     };
     this.trackGrip = track.def.grip || 1;
-    this.model = buildCarModel(def.shape, color);
+    this.model = buildCarModel(def.shape, color, { night: track.def.theme === 'city' });
     this.q = track.newQuery();
     this.reset(0, 0, 0);
   }
@@ -74,6 +74,7 @@ export class Car {
     this.steer += (steerIn - this.steer) * Math.min(1, H.steerResponse * dt);
     const throttle = spinning ? 0 : inp.throttle;
     const brake = spinning ? 0 : inp.brake;
+    this.braking = brake > 0 && this.vf > 1;
 
     // ---------- turbo
     let mul = 1, extra = 0;
@@ -273,6 +274,7 @@ export class Car {
     if (fl) {
       m.flameMat.color.setHex(this.usingTurbo ? 0xff7a1a : (this.boostColor || 0x33ddff));
     }
+    if (this.braking !== this._brakeShown) { this._brakeShown = this.braking; m.setBraking(!!this.braking); }
     m.shield.visible = this.shieldTimer > 0;
     if (m.shield.visible) m.shield.rotation.y += dt * 2;
   }

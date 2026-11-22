@@ -155,12 +155,44 @@ class Snow {
   }
 }
 
+// --------------------------------------------------------------- marcas de neumático
+class SkidMarks {
+  constructor(max) {
+    this.max = max;
+    this.pos = new Float32Array(max * 6 * 3);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
+    this.mat = new THREE.MeshBasicMaterial({ color: 0x050505, transparent: true, opacity: 0.4, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, side: THREE.DoubleSide });
+    this.mesh = new THREE.Mesh(g, this.mat);
+    this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = 1;
+    this.geo = g;
+    this.cursor = 0;
+    this.count = 0;
+  }
+  add(ax, ay, az, bx, by, bz, w) {
+    const dx = bx - ax, dz = bz - az, l = Math.hypot(dx, dz) || 1;
+    const nx = -dz / l * w, nz = dx / l * w;
+    const o = this.cursor * 18, P = this.pos;
+    const v = [ax - nx, ay, az - nz, ax + nx, ay, az + nz, bx + nx, by, bz + nz, ax - nx, ay, az - nz, bx + nx, by, bz + nz, bx - nx, by, bz - nz];
+    for (let i = 0; i < 18; i++) P[o + i] = v[i];
+    this.cursor = (this.cursor + 1) % this.max;
+    this.count = Math.min(this.max, this.count + 1);
+    this.geo.setDrawRange(0, this.count * 6);
+    this.geo.attributes.position.needsUpdate = true;
+  }
+  clear() { this.count = 0; this.cursor = 0; this.geo.setDrawRange(0, 0); }
+}
+
 // --------------------------------------------------------------- sistema de efectos
 export class Effects {
   constructor(scene, quality = 2) {
     this.scene = scene;
     this.particles = new Particles(quality >= 2 ? 700 : 350);
     scene.add(this.particles.points);
+    this.skids = new SkidMarks(quality >= 2 ? 900 : 450);
+    scene.add(this.skids.mesh);
+    this.skidLast = [];
     this.shadows = [];
     this.perRig = [];
     this.blobTex = blobTexture();
@@ -176,6 +208,8 @@ export class Effects {
   attach(race, rigs, theme) {
     this.detach();
     this.race = race;
+    this.skids.clear();
+    this.skidLast = race.racers.map(() => [null, null]);
     this.dustColor = { city: 0x777799, desert: 0xd9a35f, snow: 0xffffff }[theme] || 0x888888;
     const blobMat = new THREE.MeshBasicMaterial({ map: this.blobTex, transparent: true, depthWrite: false });
     const geo = new THREE.PlaneGeometry(2.6, 5).rotateX(-Math.PI / 2);
@@ -231,6 +265,20 @@ export class Effects {
       sh.scale.setScalar(Math.max(0.4, 1 - hgt * 0.08));
       sh.material.opacity = Math.max(0.2, 1 - hgt * 0.1);
       m.root.updateMatrixWorld();
+      // marcas de neumático
+      const sliding = !c.airborne && (c.drifting || Math.abs(c.vr) > 7 || c.spinTimer > 0) && c.speed > 6;
+      for (let w = 0; w < 2; w++) {
+        if (!sliding) { this.skidLast[i][w] = null; continue; }
+        tmpV.copy(m.rearWheelLocal[w]); m.body.localToWorld(tmpV);
+        const last = this.skidLast[i][w];
+        const y = c.q.groundY + 0.04;
+        if (last) {
+          if ((tmpV.x - last.x) ** 2 + (tmpV.z - last.z) ** 2 > 0.5) {
+            this.skids.add(last.x, last.y, last.z, tmpV.x, y, tmpV.z, 0.17);
+            last.x = tmpV.x; last.y = y; last.z = tmpV.z;
+          }
+        } else this.skidLast[i][w] = { x: tmpV.x, y, z: tmpV.z };
+      }
       // chispas de derrape
       if (c.drifting && !c.airborne) {
         const lvl = c.driftCharge ? c.driftLevel : 0;

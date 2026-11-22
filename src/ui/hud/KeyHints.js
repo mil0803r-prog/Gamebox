@@ -21,7 +21,7 @@ export class KeyHints {
     const s = sets[0];
     if (humans === 1) {
       el.innerHTML = `
-        <div class="kh-group">${cluster(SETS[0].move)}<span class="kh-or">o</span>${cluster(SETS[1].move)}<span class="kh-lbl">Dirigir</span></div>
+        <div class="kh-group">${cluster(SETS[0].move)}<span class="kh-or">/</span>${cluster(SETS[1].move)}<span class="kh-lbl">Dirigir</span></div>
         <div class="kh-group">${cap('ShiftLeft', 'wide')}<span class="kh-lbl">Derrape</span></div>
         <div class="kh-group">${cap('Space', 'wide')}<span class="kh-lbl">Turbo</span></div>
         ${items ? `<div class="kh-group">${cap('KeyE')}<span class="kh-lbl">Ítem</span></div>` : ''}

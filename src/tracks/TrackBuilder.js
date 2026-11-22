@@ -1,20 +1,21 @@
 import * as THREE from 'three';
 import { roadTexture, checkerTexture, boostPadTexture, groundTexture } from './textures.js';
 import { buildEnvironment } from './Environment.js';
+import { buildTrackside } from './Trackside.js';
 
 export const THEMES = {
   city: {
     sky: ['#05010f', '#1a0838', '#3a1050'], fog: 0x1a0a30, fogNear: 60, fogFar: 520,
-    hemi: [0x8080ff, 0x201030, 0.9], sun: [0xc0a0ff, 0.6], wallA: 0x15152a, wallB: [0xff2bd6, 0x00e5ff], wallH: 1.3,
+    hemi: [0x8080ff, 0x201030, 0.9], sun: [0xc0a0ff, 0.6], sunDir: [-0.4, 0.35, -0.6], sunCol: 0xfff0d8, sunSize: 0.9994, stars: 1, clouds: 0, wallA: 0x15152a, wallB: [0xff2bd6, 0x00e5ff], wallH: 1.3,
     basic: true,
   },
   desert: {
     sky: ['#3d7fd6', '#9cc8f0', '#ffe2b0'], fog: 0xf0d2a0, fogNear: 120, fogFar: 750,
-    hemi: [0xfff1d6, 0x9a6a3a, 1.0], sun: [0xfff0d0, 1.4], wallA: 0xd94a2b, wallB: [0xf5f0e6, 0xd94a2b], wallH: 1.0,
+    hemi: [0xfff1d6, 0x9a6a3a, 1.0], sun: [0xfff0d0, 1.4], sunDir: [0.5, 0.28, 0.4], sunCol: 0xfff3c0, sunSize: 0.9988, stars: 0, clouds: 0.35, wallA: 0xd94a2b, wallB: [0xf5f0e6, 0xd94a2b], wallH: 1.0,
   },
   snow: {
     sky: ['#5d8fcf', '#b8d4f0', '#eef4fb'], fog: 0xdfe9f5, fogNear: 90, fogFar: 600,
-    hemi: [0xeaf3ff, 0x8090a8, 1.05], sun: [0xffffff, 1.1], wallA: 0xffffff, wallB: [0xe23b3b, 0xf8f8f8], wallH: 1.1,
+    hemi: [0xeaf3ff, 0x8090a8, 1.05], sun: [0xffffff, 1.1], sunDir: [0.4, 0.45, -0.5], sunCol: 0xffffff, sunSize: 0.9991, stars: 0, clouds: 0.6, wallA: 0xffffff, wallB: [0xe23b3b, 0xf8f8f8], wallH: 1.1,
   },
 };
 
@@ -92,14 +93,44 @@ export function buildTrackScene(track, scene, quality = 2) {
   track.bounds = bounds;
 
   // ---- cielo
+  // cielo procedural: degradado + sol/luna con halo + estrellas + nubes
+  const sunDir = new THREE.Vector3(...theme.sunDir).normalize();
   const skyMat = new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false, fog: false,
-    uniforms: { top: { value: new THREE.Color(theme.sky[0]) }, mid: { value: new THREE.Color(theme.sky[1]) }, bot: { value: new THREE.Color(theme.sky[2]) } },
+    uniforms: {
+      top: { value: new THREE.Color(theme.sky[0]) }, mid: { value: new THREE.Color(theme.sky[1]) }, bot: { value: new THREE.Color(theme.sky[2]) },
+      sunDir: { value: sunDir }, sunCol: { value: new THREE.Color(theme.sunCol) }, sunSize: { value: theme.sunSize },
+      stars: { value: theme.stars }, clouds: { value: theme.clouds },
+    },
     vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); gl_Position.z = gl_Position.w; }',
-    fragmentShader: 'uniform vec3 top; uniform vec3 mid; uniform vec3 bot; varying vec3 vP; void main(){ float h = vP.y; vec3 c = h>0.0 ? mix(mid, top, smoothstep(0.0,0.6,h)) : mix(mid, bot, smoothstep(0.0,0.15,-h)); gl_FragColor = vec4(c,1.0); }',
+    fragmentShader: `uniform vec3 top; uniform vec3 mid; uniform vec3 bot; uniform vec3 sunDir; uniform vec3 sunCol; uniform float sunSize; uniform float stars; uniform float clouds;
+      varying vec3 vP;
+      float hash(vec3 p){ p = fract(p*0.3183099+0.1); p *= 17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+      float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+        float a=hash(vec3(i,0.0)), b=hash(vec3(i+vec2(1,0),0.0)), c=hash(vec3(i+vec2(0,1),0.0)), d=hash(vec3(i+vec2(1,1),0.0));
+        return mix(mix(a,b,f.x), mix(c,d,f.x), f.y); }
+      void main(){
+        vec3 d = normalize(vP); float h = d.y;
+        vec3 c = h>0.0 ? mix(mid, top, smoothstep(0.0,0.6,h)) : mix(mid, bot, smoothstep(0.0,0.15,-h));
+        float s = dot(d, sunDir);
+        c += sunCol * pow(max(s,0.0), 8.0) * 0.35;
+        c += sunCol * smoothstep(sunSize, sunSize+0.0004, s) * 1.2;
+        if (stars > 0.0 && h > 0.0) {
+          vec3 q = floor(d*260.0);
+          float st = step(0.9965, hash(q));
+          c += vec3(st) * stars * smoothstep(0.0, 0.3, h) * (0.6+0.4*hash(q+3.0));
+        }
+        if (clouds > 0.0 && h > 0.02) {
+          vec2 uv = d.xz / (h+0.15) * 2.2;
+          float n = noise(uv) * 0.55 + noise(uv*2.3+7.0) * 0.3 + noise(uv*5.1) * 0.15;
+          float cl = smoothstep(0.55, 0.8, n) * smoothstep(0.02, 0.25, h) * clouds;
+          c = mix(c, vec3(1.0), cl);
+        }
+        gl_FragColor = vec4(c,1.0);
+      }`,
   });
   const sky = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 12), skyMat);
-  sky.scale.setScalar(1500);
+  sky.scale.setScalar(900);
   sky.frustumCulled = false;
   sky.renderOrder = -10;
   sky.userData.isSky = true;
@@ -111,7 +142,7 @@ export function buildTrackScene(track, scene, quality = 2) {
   const hemi = new THREE.HemisphereLight(theme.hemi[0], theme.hemi[1], theme.hemi[2]);
   group.add(hemi);
   const sun = new THREE.DirectionalLight(theme.sun[0], theme.sun[1]);
-  sun.position.set(0.5, 1, 0.3);
+  sun.position.copy(sunDir).multiplyScalar(10).setY(Math.max(4, sunDir.y * 10 + 5));
   group.add(sun);
 
   // ---- terreno
@@ -196,6 +227,7 @@ export function buildTrackScene(track, scene, quality = 2) {
 
   // ---- decoración del tema
   const env = buildEnvironment(track, theme, group, quality);
+  buildTrackside(track, theme, group, Math.random, quality);
 
   return {
     sky,
