@@ -39,7 +39,7 @@ export class Car {
     // ítems
     this.shieldTimer = 0; this.spinTimer = 0; this.item = null; this.magnetTimer = 0;
     // eventos de este frame (para sonido / efectos)
-    this.ev = { wall: 0, land: 0, miniTurbo: 0, pad: false, bump: 0 };
+    this.ev = { wall: 0, land: 0, miniTurbo: 0, pad: false, bump: 0, backfire: false };
     this.progress = this.q.progress;
     this.surface = 0;
     this.wheelRot = 0;
@@ -260,16 +260,14 @@ export class Car {
     }
     // llamas
     const fl = this.boosting;
-    for (const f of m.flames) {
-      f.visible = fl;
-      if (fl) {
-        const s = 0.8 + Math.random() * 0.6;
-        f.scale.set(1, 1, s * (this.usingTurbo ? 1.25 : 1.0));
-      }
-    }
-    if (fl) {
-      m.flameMat.color.setHex(this.usingTurbo ? 0x2a7bff : (this.boostColor || 0x33ddff));
-    }
+    // petardeo al soltar el turbo: fogonazo naranja corto
+    if (this._wasBoosting && !fl) { this.backfireT = 0.2; this.ev.backfire = true; }
+    this._wasBoosting = fl;
+    if (this.backfireT > 0) this.backfireT -= dt;
+    const target = fl ? (this.usingTurbo ? 1.3 : 1.0) : (this.backfireT > 0 ? 0.7 : 0);
+    this.flamePower = (this.flamePower || 0) + (target - (this.flamePower || 0)) * Math.min(1, dt * 14);
+    const fcol = this.backfireT > 0 && !fl ? 0xff7a1a : this.usingTurbo ? 0x2a7bff : (this.boostColor || 0x33ddff);
+    m.setFlames(this.flamePower, fcol, performance.now() / 1000);
     const blur = Math.abs(this.vf) > 30;
     if (blur !== this._blurShown) { this._blurShown = blur; m.setBlur(blur); }
     if (this.braking !== this._brakeShown) { this._brakeShown = this.braking; m.setBraking(!!this.braking); }

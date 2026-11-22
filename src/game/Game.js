@@ -101,6 +101,14 @@ export class Game {
     this.captureEnvironment(def.theme); // reflejos reales del escenario en la pintura
     this.race = new Race(this.track, cfg.entries, { laps: cfg.laps, items: cfg.items });
     for (const r of this.race.racers) this.scene.add(r.car.model.root);
+    // sombras reales (solo con calidad media o alta)
+    this.shadows = this.quality.level >= 1 && !cfg.demo;
+    this.renderer.shadowMap.enabled = this.shadows;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.trackScene.sun.castShadow = this.shadows;
+    if (this.shadows) for (const r of this.race.racers) r.car.model.root.traverse(o => {
+      if (o.isMesh && !o.material.transparent && o.material.type !== 'ShaderMaterial' && o.material.type !== 'MeshBasicMaterial') o.castShadow = true;
+    });
     if (cfg.items) { this.items = new Items(this.scene, this.track); this.race.items = this.items; }
     this.pickups = cfg.pickups !== false ? new Pickups(this.scene, this.track) : null;
     this.traffic = def.traffic ? new Traffic(this.scene, this.track) : null;
@@ -212,6 +220,13 @@ export class Game {
     this.trackScene.update(dt, race.time);
     for (const rig of this.rigs) rig.update(dt, rig.racer.car);
     this.effects.update(dt);
+    if (this.shadows && this.rigs[0]) {
+      const c = this.rigs[0].racer.car, sun = this.trackScene.sun, d = this.trackScene.sunDir;
+      const ax = Math.sin(c.heading) * 6, az = Math.cos(c.heading) * 6; // un poco adelante del auto
+      sun.target.position.set(c.x + ax, c.y, c.z + az);
+      sun.position.set(c.x + ax + d.x * 60, c.y + Math.max(25, d.y * 60), c.z + az + d.z * 60);
+      sun.target.updateMatrixWorld();
+    }
     if (this.isDemo) { race.events.length = 0; return; }
     this.audio.update(dt, race);
     for (const h of this.huds) h.update(dt, race, this.input.kb);

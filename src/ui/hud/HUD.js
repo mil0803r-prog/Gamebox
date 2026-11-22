@@ -41,6 +41,7 @@ export class PlayerHUD {
     el.className = 'phud';
     el.style.setProperty('--pc', hex(racer.color));
     el.innerHTML = `
+      <div class="ph-boostfx"></div>
       <div class="ph-tl">
         <div class="ph-pos"><b class="ph-posn">1</b><sup>º</sup><span class="ph-post">/2</span></div>
         <div class="ph-lap"><span>VUELTA</span> <b class="ph-lapn">1/3</b></div>
@@ -67,6 +68,7 @@ export class PlayerHUD {
     this.posEl = q('.ph-pos'); this.posn = q('.ph-posn'); this.post = q('.ph-post');
     this.lapn = q('.ph-lapn'); this.lapbar = q('.ph-lapbar i'); this.time = q('.ph-time'); this.best = q('.ph-best');
     this.board = q('.ph-board');
+    this.boostFx = q('.ph-boostfx');
     this.coinsEl = q('.ph-coins'); this.coinN = q('.ph-coinn'); this.cash = q('.ph-cash');
     this.gauge = q('.ph-gauge'); this.spd = q('.ph-spd'); this.tpct = q('.ph-tpct');
     this.spdArc = q('.g-spd'); this.turboArc = q('.g-turbo');
@@ -146,6 +148,7 @@ export class PlayerHUD {
     if (c.drifting && c.driftLevel > 0 && c.driftCharge) gcls += ' lvl' + c.driftLevel;
     if (c.slipActive) gcls += ' slip';
     this.set('gcls', this.gauge, gcls, 'className');
+    this.set('bfx', this.boostFx, 'ph-boostfx' + (c.usingTurbo ? ' on turbo' : c.boosting ? ' on' : ''), 'className');
 
     this.set('wrong', this.wrong, r.wrongWay > 1.2 && !r.finished ? 'ph-wrong' : 'ph-wrong hidden', 'className');
     if (this.opts.items) {

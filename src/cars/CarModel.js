@@ -45,8 +45,8 @@ const spow = (v, e) => Math.sign(v) * Math.pow(Math.abs(v), e);
 function buildBody(b) {
   const top = smoothSampler(b.top), belt = smoothSampler(b.belt), hwf = smoothSampler(b.hw);
   const L = b.L, W = b.W;
-  const N = 44;             // estaciones a lo largo
-  const K = 6;              // puntos por cuarto de sección
+  const N = 58;             // estaciones a lo largo
+  const K = 7;              // puntos por cuarto de sección
   const zOf = u => (u - 0.5) * L;
   const wheelZ = b.wheels.map(zOf);
   const archR = b.r * 1.16;
@@ -127,7 +127,8 @@ function buildBody(b) {
         // ventanas laterales (parte baja del invernadero) y parabrisas en vidrio; el techo va pintado
         const isGlass = glassRow && upper && (steepRow || k <= K + 3) && !(b.cabin[1] - b.cabin[0] < 0.1 && !steepRow);
         // marco negro: junta de la ventana (repisa de la cintura) y pilares del parabrisas/luneta
-        const isTrim = glassRow && (k === K || (steepRow && k === K + 1));
+        // parte baja negra (zócalo/difusor visual) en los superdeportivos: el auto se ve más bajo
+        const isTrim = (glassRow && (k === K || (steepRow && k === K + 1))) || (b.lowerBlack && k <= 2);
         const target = isTrim ? trimIdx : isGlass ? glassIdx : paintIdx;
         if (side === 0) target.push(i0, i1, j0, i1, j1, j0);
         else target.push(i0, j0, i1, i1, j0, j1);
@@ -312,6 +313,19 @@ export function buildCarModel(def, colorHex, opts = {}) {
       o.position.set(s * (W / 2 * b.track - 0.02), b.r, zOf(u));
     }
   });
+
+  // ---- guardabarros musculosos sobre las ruedas
+  if (b.fenders) {
+    const archTop = b.r * 2.16 - 0.02;
+    b.wheels.forEach((u, wi) => {
+      if (wi !== 0) return; // solo las "caderas" traseras; adelante el capó es más bajo
+      for (const sd of [1, -1]) {
+        const f = add(new THREE.SphereGeometry(1, 20, 12), paint);
+        f.scale.set(0.24, 0.12, b.r * (wi ? 1.5 : 1.65));
+        f.position.set(sd * (W / 2 * b.track + 0.01), archTop + 0.03, zOf(u));
+      }
+    });
+  }
 
   // ---- tomas de aire laterales (motor central)
   if (b.intakes) {
@@ -543,20 +557,49 @@ export function buildCarModel(def, colorHex, opts = {}) {
     wheels.push({ pivot, spin, front: u > 0.5 });
   }
 
-  // ---- llamas del escape
-  const flameMat = new THREE.MeshBasicMaterial({ color: 0xff8a1f, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
-  const flameCore = new THREE.MeshBasicMaterial({ color: 0xfff2a0, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+  // ---- llamas del escape: shader con núcleo blanco, color del turbo y parpadeo
+  const flameMat = new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(0x2a7bff) }, uTime: { value: 0 }, uPower: { value: 1 } },
+    vertexShader: `varying float vT; varying float vR; uniform float uTime; uniform float uPower;
+      void main(){
+        vT = clamp(-position.z / 0.75, 0.0, 1.0);
+        vR = length(position.xy) / 0.09;
+        vec3 p = position;
+        p.z *= uPower * (0.85 + 0.25 * sin(uTime * 61.0 + position.x * 40.0));
+        p.xy *= 1.0 + 0.25 * sin(uTime * 47.0 + vT * 9.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      }`,
+    fragmentShader: `uniform vec3 uColor; uniform float uTime; varying float vT; varying float vR;
+      void main(){
+        float core = smoothstep(0.55, 0.0, vT) * smoothstep(0.9, 0.0, vR);
+        vec3 c = mix(uColor, vec3(1.0, 0.98, 0.92), core);
+        c = mix(c, uColor * 0.6 + vec3(0.05, 0.0, 0.1), smoothstep(0.5, 1.0, vT));
+        float a = pow(1.0 - vT, 1.4) * (0.75 + 0.25 * sin(uTime * 83.0 + vT * 20.0));
+        gl_FragColor = vec4(c * a * 1.6, a);
+      }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+  });
+  const flameCore = flameMat; // compatibilidad
   const flames = [];
   for (const x of exX) {
     const f = new THREE.Mesh(m.flameGeo, flameMat);
-    f.position.set(x, exY, -halfL - 0.1);
-    const core = new THREE.Mesh(m.flameGeo, flameCore);
-    core.scale.set(0.5, 0.5, 0.6);
-    f.add(core);
+    f.position.set(x, exY, -halfL - 0.08);
     f.visible = false;
     body.add(f);
     flames.push(f);
   }
+  // luz del escape reflejada en el piso detrás del auto
+  const exGlowMat = new THREE.MeshBasicMaterial({ map: m.glowTex, color: 0x2a7bff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+  const exGlow = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.6, 3.2).rotateX(-Math.PI / 2), exGlowMat);
+  exGlow.position.set(0, 0.06, -halfL - 1.0);
+  exGlow.renderOrder = 3;
+  root.add(exGlow);
+  // destello en la boca de los escapes
+  const muzzleMat = new THREE.SpriteMaterial({ map: m.glowTex, color: 0x6fb4ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 });
+  const muzzle = new THREE.Sprite(muzzleMat);
+  muzzle.position.set(0, exY, -halfL - 0.15);
+  muzzle.scale.set(W * 0.9, 0.5, 1);
+  body.add(muzzle);
 
   // ---- escudo (ítem)
   const shield = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshBasicMaterial({ color: 0x66ccff, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending }));
@@ -566,7 +609,19 @@ export function buildCarModel(def, colorHex, opts = {}) {
   root.add(shield);
 
   return {
-    root, body, wheels, flames, flameMat, flameCore, shield, tailMat, tailGlowMat, paint,
+    root, body, wheels, flames, flameMat, flameCore, shield, tailMat, tailGlowMat, paint, exGlowMat, muzzleMat,
+    // turbo: power 0 = apagado; color del fuego
+    setFlames(power, color, time) {
+      const on = power > 0.02;
+      for (const f of flames) f.visible = on;
+      flameMat.uniforms.uTime.value = time;
+      flameMat.uniforms.uPower.value = Math.max(0.3, power);
+      flameMat.uniforms.uColor.value.setHex(color);
+      exGlowMat.color.setHex(color);
+      exGlowMat.opacity = Math.min(0.9, power * 0.75) * (0.8 + Math.random() * 0.2);
+      muzzleMat.color.setHex(color);
+      muzzleMat.opacity = Math.min(1, power) * (0.6 + Math.random() * 0.4);
+    },
     rearWheelLocal: [new THREE.Vector3(wx, 0.05, zOf(b.wheels[0])), new THREE.Vector3(-wx, 0.05, zOf(b.wheels[0]))],
     halfLength: halfL,
     setBlur(on) {

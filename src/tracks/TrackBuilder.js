@@ -157,6 +157,12 @@ export function buildTrackScene(track, scene, quality = 2) {
   const sun = new THREE.DirectionalLight(theme.sun[0], theme.sun[1]);
   sun.position.copy(sunDir).multiplyScalar(10).setY(Math.max(4, sunDir.y * 10 + 5));
   group.add(sun);
+  group.add(sun.target);
+  // sombras: la cámara de sombra sigue al auto del jugador (ver Game.updateShadows)
+  sun.shadow.mapSize.set(1024, 1024);
+  Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 140 });
+  sun.shadow.bias = -0.0006;
+  sun.shadow.normalBias = 0.03;
 
   // ---- terreno
   const size = bounds.size + 900;
@@ -173,6 +179,7 @@ export function buildTrackScene(track, scene, quality = 2) {
   for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * size / 40, uv.getY(i) * size / 40);
   const gtex = groundTexture(track.def.theme);
   const ground = new THREE.Mesh(tg, new THREE.MeshLambertMaterial({ map: gtex }));
+  ground.receiveShadow = true;
   group.add(ground);
   disposables.push(tg, gtex);
 
@@ -183,6 +190,7 @@ export function buildTrackScene(track, scene, quality = 2) {
   track.surfaces.forEach((surf, k) => {
     const g = surfaceStrip(surf, -1, 1, k === 0 ? 0.02 : 0.05, 14);
     const m = new THREE.Mesh(g, roadMat);
+    m.receiveShadow = true;
     group.add(m);
     disposables.push(g);
   });
@@ -243,7 +251,7 @@ export function buildTrackScene(track, scene, quality = 2) {
   buildTrackside(track, theme, group, Math.random, quality);
 
   return {
-    sky,
+    sky, sun, sunDir,
     group, theme, padTex: ptex, env,
     update(dt, t) {
       ptex.offset.y -= dt * 2.5;

@@ -72,7 +72,7 @@ export class Race {
 
     for (const r of this.racers) {
       const c = r.car;
-      c.ev.wall = 0; c.ev.land = 0; c.ev.miniTurbo = 0; c.ev.pad = false; c.ev.bump = 0;
+      c.ev.wall = 0; c.ev.land = 0; c.ev.miniTurbo = 0; c.ev.pad = false; c.ev.bump = 0; c.ev.backfire = false;
     }
     const steps = Math.max(1, Math.ceil(dt / SUB));
     const h = dt / steps;

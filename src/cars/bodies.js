@@ -11,7 +11,7 @@ export const BODIES = {
     top: [[0, 0.64], [0.07, 0.96], [0.26, 1.06], [0.42, 1.15], [0.55, 1.15], [0.72, 0.8], [0.86, 0.64], [1, 0.4]],
     belt: [[0, 0.62], [0.26, 0.88], [0.42, 0.9], [0.72, 0.78], [0.86, 0.62], [1, 0.4]],
     hw: [[0, 0.9], [0.1, 1], [0.8, 0.98], [0.95, 0.9], [1, 0.8]],
-    cabin: [0.4, 0.73], lights: 'slim', tails: 'strip', intakes: true, engineCover: true,
+    cabin: [0.4, 0.73], lights: 'slim', tails: 'strip', intakes: true, engineCover: true, lowerBlack: true, fenders: true,
   },
   // Superdeportivo curvo de motor central, estilo italiano clásico
   curvy: {
@@ -19,7 +19,7 @@ export const BODIES = {
     top: [[0, 0.7], [0.08, 0.98], [0.3, 1.04], [0.42, 1.17], [0.55, 1.17], [0.68, 0.9], [0.82, 0.72], [0.95, 0.55], [1, 0.4]],
     belt: [[0, 0.68], [0.3, 0.9], [0.42, 0.92], [0.68, 0.86], [0.82, 0.7], [1, 0.4]],
     hw: [[0, 0.86], [0.12, 1], [0.3, 0.94], [0.5, 0.92], [0.78, 1], [0.95, 0.9], [1, 0.78]],
-    cabin: [0.4, 0.69], lights: 'slim', tails: 'ring', intakes: true,
+    cabin: [0.4, 0.69], lights: 'slim', tails: 'ring', intakes: true, lowerBlack: true, fenders: true,
   },
   // Gran turismo de motor delantero: capó largo, cabina atrasada
   gt: {
@@ -27,7 +27,7 @@ export const BODIES = {
     top: [[0, 0.76], [0.07, 0.96], [0.2, 1.04], [0.31, 1.2], [0.45, 1.25], [0.56, 1.1], [0.63, 0.92], [0.86, 0.82], [1, 0.56]],
     belt: [[0, 0.74], [0.2, 0.95], [0.31, 0.95], [0.56, 0.9], [0.63, 0.88], [1, 0.56]],
     hw: [[0, 0.88], [0.12, 1], [0.4, 0.95], [0.8, 1], [1, 0.8]],
-    cabin: [0.2, 0.63], lights: 'slim', tails: 'ring', hoodVent: true,
+    cabin: [0.2, 0.63], lights: 'slim', tails: 'ring', hoodVent: true, lowerBlack: true, fenders: true,
   },
   // Hiperauto: muy largo y bajo, aleta trasera
   hyper: {
@@ -35,7 +35,7 @@ export const BODIES = {
     top: [[0, 0.6], [0.05, 0.94], [0.3, 1.0], [0.42, 1.1], [0.55, 1.1], [0.7, 0.75], [0.88, 0.55], [1, 0.33]],
     belt: [[0, 0.58], [0.3, 0.84], [0.42, 0.86], [0.7, 0.72], [0.88, 0.54], [1, 0.33]],
     hw: [[0, 0.92], [0.1, 1], [0.35, 0.9], [0.55, 0.88], [0.8, 1], [1, 0.75]],
-    cabin: [0.42, 0.71], lights: 'slim', tails: 'ring', intakes: true, fin: true,
+    cabin: [0.42, 0.71], lights: 'slim', tails: 'ring', intakes: true, fin: true, lowerBlack: true, fenders: true,
   },
   // Eléctrico deportivo: liso, techo tipo fastback
   electric: {
@@ -43,7 +43,7 @@ export const BODIES = {
     top: [[0, 0.78], [0.1, 0.96], [0.25, 1.12], [0.45, 1.27], [0.6, 1.16], [0.72, 0.9], [0.9, 0.72], [1, 0.55]],
     belt: [[0, 0.74], [0.25, 0.9], [0.6, 0.88], [0.72, 0.84], [1, 0.55]],
     hw: [[0, 0.9], [0.12, 1], [0.85, 0.98], [1, 0.82]],
-    cabin: [0.22, 0.73], lights: 'slim', tails: 'strip',
+    cabin: [0.22, 0.73], lights: 'slim', tails: 'strip', lowerBlack: true,
   },
   // Speedster sin techo
   speedster: {
@@ -51,7 +51,7 @@ export const BODIES = {
     top: [[0, 0.7], [0.1, 0.97], [0.34, 1.02], [0.46, 0.92], [0.58, 0.92], [0.63, 1.04], [0.68, 0.86], [0.84, 0.7], [1, 0.42]],
     belt: [[0, 0.68], [0.34, 0.92], [0.46, 0.9], [0.62, 0.88], [0.7, 0.84], [0.84, 0.68], [1, 0.42]],
     hw: [[0, 0.86], [0.12, 1], [0.5, 0.92], [0.78, 1], [1, 0.78]],
-    cabin: [0.6, 0.665], lights: 'slim', tails: 'ring', intakes: true, humps: true,
+    cabin: [0.6, 0.665], lights: 'slim', tails: 'ring', intakes: true, humps: true, lowerBlack: true, fenders: true,
   },
   // Coupé japonés preparado
   tuner: {
@@ -59,7 +59,7 @@ export const BODIES = {
     top: [[0, 0.86], [0.08, 1.0], [0.2, 1.08], [0.31, 1.32], [0.55, 1.36], [0.68, 1.0], [0.82, 0.86], [1, 0.62]],
     belt: [[0, 0.83], [0.2, 0.98], [0.55, 0.96], [0.68, 0.92], [1, 0.62]],
     hw: [[0, 0.92], [0.1, 1], [0.9, 1], [1, 0.86]],
-    cabin: [0.22, 0.69], lights: 'slim', tails: 'quad', hoodVent: true,
+    cabin: [0.22, 0.69], lights: 'slim', tails: 'quad', hoodVent: true, lowerBlack: true,
   },
   // Muscle car americano: cuadrado, capó con toma de aire
   muscle: {

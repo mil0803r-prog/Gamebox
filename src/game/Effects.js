@@ -311,6 +311,12 @@ export class Effects {
       if (c.ev.bump > 4) this.burst(c.x, c.y + 0.8, c.z, 0xffffff, 10, 6, 0.35, 0.3, 10);
       if (c.ev.land > 6) this.burst(c.x, gy + 0.3, c.z, this.dustColor, 14, 5, 0.7, 1.0, 2);
       if (c.ev.miniTurbo) this.burst(c.x, c.y + 0.6, c.z, D.sparkColors[c.ev.miniTurbo], 20 + c.ev.miniTurbo * 6, 9, 0.5, 0.4, 4);
+      if (c.ev.backfire) {
+        const fx = Math.sin(c.heading), fz = Math.cos(c.heading);
+        for (let k = 0; k < 14; k++) P.emit(c.x - fx * (m.halfLength + 0.3), c.y + 0.35, c.z - fz * (m.halfLength + 0.3),
+          -fx * (4 + Math.random() * 5) + (Math.random() - 0.5) * 3 + c.vx * 0.7, Math.random() * 2, -fz * (4 + Math.random() * 5) + (Math.random() - 0.5) * 3 + c.vz * 0.7,
+          k % 3 ? 0xff8a1f : 0xffe08a, 0.25 + Math.random() * 0.2, 0.4, 2);
+      }
       if (c.ev.pad) this.burst(c.x, c.y + 0.4, c.z, 0x33ddff, 14, 6, 0.4, 0.35, 2);
     });
     for (const e of race.events) {

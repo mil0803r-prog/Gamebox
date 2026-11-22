@@ -147,6 +147,7 @@ export class AudioSys {
       if (c.ev.miniTurbo) this.whoosh(0.25 + c.ev.miniTurbo * 0.1, 1 + c.ev.miniTurbo * 0.25, pan);
       if (c.ev.pad) this.whoosh(0.35, 1.6, pan);
       if (c.usingTurbo && !e.wasTurbo) this.whoosh(0.4, 0.8, pan);
+      if (c.ev.backfire) this.pop(pan);
       e.wasTurbo = c.usingTurbo;
     }
   }
@@ -202,6 +203,17 @@ export class AudioSys {
     f.frequency.exponentialRampToValueAtTime(2500 * pitch, t + 0.5);
     n.connect(f);
     this.out(this.env(f, t, vol, 0.6), pan);
+  }
+  // petardeo del escape: dos golpes secos
+  pop(pan = 0) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    for (const d of [0, 0.07]) {
+      const n = this.noise(t + d, 0.08);
+      const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+      n.connect(f);
+      this.out(this.env(f, t + d, 0.5, 0.07), pan);
+    }
   }
   beep(freq, dur = 0.18, vol = 0.25, type = 'square') {
     if (!this.ctx) return;
