@@ -3,6 +3,7 @@ import { showCarSelect } from './CarSelect.js';
 import { showOptions } from './Options.js';
 import { showRecords } from './Records.js';
 import { showControls } from './Controls.js';
+import { showDealer } from './Dealer.js';
 
 export function showMainMenu(ui) {
   ui.game.audio?.music('menu');
@@ -17,6 +18,7 @@ export function showMainMenu(ui) {
       <nav class="menu-col">
         <button class="btn mbtn primary" data-a="1"><span class="mi">🏎️</span><span class="mt">1 JUGADOR<small>Contra la IA</small></span><span class="ma">›</span></button>
         <button class="btn mbtn pink" data-a="2"><span class="mi">👥</span><span class="mt">2 JUGADORES<small>Pantalla dividida</small></span><span class="ma">›</span></button>
+        <button class="btn mbtn shop" data-a="shop"><span class="mi">🏪</span><span class="mt">CONCESIONARIO<small>24 autos · compra con lo que ganes</small></span><span class="ma">›</span></button>
         <div class="menu-grid">
           <button class="btn mbtn small" data-a="ctl"><span class="mi">🎮</span><span class="mt">Controles</span></button>
           <button class="btn mbtn small" data-a="rec"><span class="mi">🏆</span><span class="mt">Récords</span></button>
@@ -33,6 +35,7 @@ export function showMainMenu(ui) {
     if (a === 'opt') showOptions(ui);
     if (a === 'rec') showRecords(ui);
     if (a === 'ctl') showControls(ui);
+    if (a === 'shop') showDealer(ui);
   });
   ui.screen(n, { demo: true });
 }

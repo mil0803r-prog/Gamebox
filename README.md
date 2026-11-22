@@ -42,6 +42,14 @@ Usa rutas relativas, así que funciona en la raíz o en una subcarpeta. Tras la 
 - **Pads de turbo**, **rampas** y **atajos** (camino amarillo en el mini-mapa) en cada pista.
 - **Modo ítems** (opcional): turbo extra, mancha de aceite y escudo.
 
+## Autos y concesionario
+
+- **24 autos** de marcas ficticias inspiradas en estilos reales (superdeportivo italiano curvo y en cuña, hiperautos, GT, muscle, japoneses, eléctricos, pickup), en 4 clases: **C Calle, B Deportivo, A Súper, S Híper**.
+- Cada auto tiene velocidad máxima, 0-100 km/h, potencia, peso, manejo y turbo; el **precio sube según el rendimiento** (de gratis a $560.000).
+- Empiezas con 2 autos y $25.000. Ganas dinero en cada carrera según el puesto, las vueltas y la dificultad (+bonos por récord) y compras en el **Concesionario**.
+- Los rivales de la IA usan autos de rendimiento parecido al tuyo (más fuertes en Difícil).
+- El catálogo y la fórmula de precios están en `src/cars/carData.js`; las formas de carrocería en `src/cars/bodies.js`.
+
 ## Ajustar el manejo
 
 Todos los valores de agarre, aceleración, giro, derrape, turbo, rebufo y cámara están en **`src/config.js`**.

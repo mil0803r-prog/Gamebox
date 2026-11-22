@@ -107,10 +107,3 @@ export const CONFIG = {
   },
 };
 
-// Escala de estadísticas de los autos (1..5) a multiplicadores físicos
-export const STAT_SCALE = {
-  speed:    [0.90, 0.94, 0.98, 1.02, 1.06],
-  accel:    [0.80, 0.90, 1.00, 1.10, 1.22],
-  handling: [0.82, 0.91, 1.00, 1.09, 1.18],
-  turbo:    [0.85, 0.93, 1.00, 1.10, 1.22],
-};

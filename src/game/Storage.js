@@ -1,6 +1,7 @@
 // Récords y opciones en localStorage (con try/catch por modo privado)
 const KEY_REC = 'turboDuelo.records.v1';
 const KEY_SET = 'turboDuelo.settings.v1';
+const KEY_PRO = 'turboDuelo.profile.v1';
 
 function load(key, def) {
   try { const v = JSON.parse(localStorage.getItem(key)); return v ? { ...def, ...v } : { ...def }; } catch { return { ...def }; }
@@ -10,7 +11,7 @@ function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); 
 export const DEFAULT_SETTINGS = {
   laps: 3, items: false, difficulty: 1, rivals1p: 3, rivals2p: 0,
   autoAccel: true, showKeys: true, split: 'auto', quality: 'auto', music: true, sfx: true, muted: false, showFps: false,
-  p1: { car: 0, color: 0 }, p2: { car: 1, color: 1 }, track: 0,
+  p1: { car: 'rayo', color: -1 }, p2: { car: 'pulga', color: -1 }, track: 0,
 };
 
 export const Settings = {
@@ -34,3 +35,28 @@ export const Records = {
   },
   clear() { this.data = {}; save(KEY_REC, this.data); },
 };
+
+// ---------------------------------------------------------------- dinero y garaje
+export const START_MONEY = 25000;
+export const Profile = {
+  data: load(KEY_PRO, { money: START_MONEY, owned: ['pulga', 'rayo'], earned: 0 }),
+  save() { save(KEY_PRO, this.data); },
+  owns(id) { return this.data.owned.includes(id); },
+  canAfford(price) { return this.data.money >= price; },
+  buy(car) {
+    if (this.owns(car.id) || this.data.money < car.price) return false;
+    this.data.money -= car.price;
+    this.data.owned.push(car.id);
+    this.save();
+    return true;
+  },
+  earn(n) { this.data.money += n; this.data.earned = (this.data.earned || 0) + n; this.save(); },
+};
+
+// migración de opciones antiguas (autos por índice)
+for (const k of ['p1', 'p2']) {
+  const p = Settings.data[k];
+  if (!p || typeof p.car !== 'string') Settings.data[k] = { ...DEFAULT_SETTINGS[k] };
+  if (!Profile.owns(Settings.data[k].car)) Settings.data[k].car = k === 'p1' ? 'rayo' : 'pulga';
+  if (typeof Settings.data[k].color !== 'number' || Settings.data[k].color > 11) Settings.data[k].color = -1;
+}

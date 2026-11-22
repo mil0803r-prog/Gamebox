@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { buildCarModel } from '../../cars/CarModel.js';
+import { applyEnvironment } from '../../cars/envMap.js';
 
 // Vista previa 3D giratoria de un auto (pequeño renderer propio, solo en menús)
 export class CarPreview {
@@ -9,6 +10,7 @@ export class CarPreview {
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.scene = new THREE.Scene();
+    applyEnvironment(this.renderer, this.scene, 1.1);
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x443366, 1.6));
     const d = new THREE.DirectionalLight(0xffffff, 1.5); d.position.set(3, 5, 4); this.scene.add(d);
     const floor = new THREE.Mesh(new THREE.CircleGeometry(3.4, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 }));
@@ -19,9 +21,9 @@ export class CarPreview {
     this.angle = 0.6;
     this.model = null;
   }
-  set(shape, color) {
+  set(def, color) {
     if (this.model) this.scene.remove(this.model.root);
-    this.model = buildCarModel(shape, color);
+    this.model = buildCarModel(def, color);
     this.scene.add(this.model.root);
   }
   render(dt) {

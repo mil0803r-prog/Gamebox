@@ -22,3 +22,5 @@ export const THEME_GRAD = {
   snow: 'linear-gradient(135deg,#e6f2ff 0%,#8fb8e8 50%,#3d5f9a 100%)',
 };
 export const THEME_ICON = { city: '🌃', desert: '🏜️', snow: '🏔️' };
+
+export const money = n => '$' + Math.round(n).toLocaleString('es-ES');

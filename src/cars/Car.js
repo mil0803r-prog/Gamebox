@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CONFIG, STAT_SCALE } from '../config.js';
+import { CONFIG } from '../config.js';
 import { buildCarModel } from './CarModel.js';
 
 const H = CONFIG.handling;
@@ -13,14 +13,10 @@ export class Car {
     this.color = color;
     this.index = index;
     this.mass = def.mass;
-    this.sm = {
-      speed: STAT_SCALE.speed[def.stats.speed - 1],
-      accel: STAT_SCALE.accel[def.stats.accel - 1],
-      handling: STAT_SCALE.handling[def.stats.handling - 1],
-      turbo: STAT_SCALE.turbo[def.stats.turbo - 1],
-    };
+    this.sm = { ...def.phys }; // multiplicadores derivados del catálogo (carData.js)
+    this.displayScale = def.displayScale || 1;
     this.trackGrip = track.def.grip || 1;
-    this.model = buildCarModel(def.shape, color, { night: track.def.theme === 'city' });
+    this.model = buildCarModel(def, color, { night: track.def.theme === 'city' });
     this.q = track.newQuery();
     this.reset(0, 0, 0);
   }

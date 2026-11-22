@@ -3,7 +3,7 @@ import { CONFIG } from '../config.js';
 import { Track } from '../tracks/Track.js';
 import { TRACKS } from '../tracks/trackData.js';
 import { buildTrackScene } from '../tracks/TrackBuilder.js';
-import { CARS, COLORS } from '../cars/carData.js';
+import { CARS } from '../cars/carData.js';
 import { Race } from './Race.js';
 import { CameraRig } from './CameraRig.js';
 import { DemoCamera } from './DemoCamera.js';
@@ -18,6 +18,7 @@ import { InputManager } from '../input/Input.js';
 import { TouchControls } from '../input/Touch.js';
 import { AudioSys } from '../audio/Audio.js';
 import { PlayerHUD } from '../ui/hud/HUD.js';
+import { applyEnvironment } from '../cars/envMap.js';
 
 // Núcleo del juego: renderer, bucle principal y ciclo de vida de la carrera
 export class Game {
@@ -29,6 +30,7 @@ export class Game {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(this.renderer.domElement);
     this.scene = new THREE.Scene();
+    applyEnvironment(this.renderer, this.scene, 1);
 
     this.input = new InputManager();
     this.touch = new TouchControls(document.getElementById('touch'), this.input);
@@ -94,6 +96,7 @@ export class Game {
     const def = TRACKS.find(t => t.id === cfg.trackId) || TRACKS[0];
     this.track = new Track(def);
     this.trackScene = buildTrackScene(this.track, this.scene, this.quality ? this.quality.level : 2);
+    this.scene.environmentIntensity = { city: 0.45, desert: 1, snow: 1.1 }[def.theme] ?? 1;
     this.race = new Race(this.track, cfg.entries, { laps: cfg.laps, items: cfg.items });
     for (const r of this.race.racers) this.scene.add(r.car.model.root);
     if (cfg.items) { this.items = new Items(this.scene, this.track); this.race.items = this.items; }
@@ -128,10 +131,10 @@ export class Game {
   // Carrera de demostración (solo IA) que se ve detrás de los menús
   startDemo() {
     const t = TRACKS[Math.floor(Math.random() * TRACKS.length)];
-    const cols = [0, 1, 4, 2];
+    const pool = CARS.filter(c => c.cls === 'A' || c.cls === 'S').sort(() => Math.random() - 0.5).slice(0, 4);
     this.startRace({
       demo: true, trackId: t.id, laps: 99, items: false,
-      entries: CARS.map((car, i) => ({ car, color: COLORS[cols[i]].hex, human: false, aiLevel: 2, name: car.name })),
+      entries: pool.map(car => ({ car, color: car.color, human: false, aiLevel: 2, name: car.name })),
     });
   }
 

@@ -10,7 +10,7 @@ const ITEM_NAME = { turbo: 'Turbo', oil: 'Aceite', shield: 'Escudo' };
 
 // Velocímetro circular (SVG): arco de velocidad + anillo interior de turbo
 const R1 = 52, R2 = 42, C1 = 2 * Math.PI * R1, C2 = 2 * Math.PI * R2, ARC = 0.75;
-const MAX_KMH = 300;
+const MAX_KMH = 440;
 function gaugeSVG() {
   let ticks = '';
   for (let i = 0; i <= 10; i++) {
@@ -119,7 +119,7 @@ export class PlayerHUD {
     this.set('best', this.best, bestLap ? 'Mejor ' + fmtTime(bestLap) : '');
 
     // velocímetro
-    const kmh = Math.round(c.speed * 3.6);
+    const kmh = Math.round(c.speed * 3.6 * (c.displayScale || 1));
     this.set('spd', this.spd, String(kmh));
     const sp = Math.round(Math.min(1, kmh / MAX_KMH) * 100);
     if (this.last.sp !== sp) { this.last.sp = sp; this.spdArc.setAttribute('stroke-dashoffset', C1 * ARC * (1 - sp / 100)); }

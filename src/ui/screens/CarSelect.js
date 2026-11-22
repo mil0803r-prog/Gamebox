@@ -1,22 +1,29 @@
-import { CARS, COLORS } from '../../cars/carData.js';
-import { Settings } from '../../game/Storage.js';
+import { CARS, COLORS, CLASSES, carById } from '../../cars/carData.js';
+import { Settings, Profile } from '../../game/Storage.js';
 import { CarPreview } from '../components/CarPreview.js';
-import { el, hex, STAT_LABELS } from '../dom.js';
+import { el, hex } from '../dom.js';
 import { showMainMenu } from './MainMenu.js';
 import { showTrackSelect } from './TrackSelect.js';
+import { showDealer } from './Dealer.js';
 
 const KEYS = {
   1: ['<kbd>A</kbd><kbd>D</kbd> auto · <kbd>W</kbd><kbd>S</kbd> color'],
   2: ['<kbd>A</kbd><kbd>D</kbd> auto · <kbd>W</kbd><kbd>S</kbd> color', '<kbd>←</kbd><kbd>→</kbd> auto · <kbd>↑</kbd><kbd>↓</kbd> color'],
 };
+const BARS = [['speed', 'Velocidad'], ['accel', 'Aceleración'], ['handling', 'Manejo'], ['turbo', 'Turbo']];
+
+// color real de pintura según la opción (-1 = color de fábrica)
+export const paintOf = st => st.color < 0 ? carById(st.car).color : COLORS[st.color].hex;
 
 export function showCarSelect(ui) {
   const players = ui.mode;
+  const garage = CARS.filter(c => Profile.owns(c.id));
   const n = el(`<div class="screen select">
-    <header class="scr-head"><span class="step">PASO 1 / 2</span><h2>ELIGE TU AUTO</h2></header>
+    <header class="scr-head"><span class="step">PASO 1 / 2 · TU GARAJE (${garage.length}/${CARS.length})</span><h2>ELIGE TU AUTO</h2></header>
     <div class="panels ${players === 2 ? 'two' : ''}"></div>
     <div class="menu-row bottom">
       <button class="btn" data-a="back">‹ Atrás</button>
+      <button class="btn pink" data-a="shop">🏪 Concesionario</button>
       <button class="btn go" data-a="next" data-focus>Continuar ›</button>
     </div>
   </div>`);
@@ -25,6 +32,7 @@ export function showCarSelect(ui) {
   const refresh = [];
   const all = () => refresh.forEach(f => f());
   const pns = [];
+  const swatchCols = [-1, ...COLORS.map((_, i) => i)];
 
   for (let p = 0; p < players; p++) {
     const pn = el(`<div class="panel p${p + 1}">
@@ -34,11 +42,12 @@ export function showCarSelect(ui) {
         <div class="stage"><canvas></canvas><div class="pedestal"></div></div>
         <button class="arrow" data-d="1" aria-label="Siguiente">›</button>
       </div>
-      <div class="cardots">${CARS.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
+      <div class="cardots"></div>
+      <div class="carclass"></div>
       <div class="carname"></div>
-      <div class="cardesc"></div>
+      <div class="carspecs"></div>
       <div class="stats"></div>
-      <div class="swatches">${COLORS.map((c, i) => `<button class="sw" data-c="${i}" style="--sw:${hex(c.hex)}" title="${c.name}"></button>`).join('')}</div>
+      <div class="swatches"></div>
       ${ui.game.isTouch ? '' : `<div class="keys">${KEYS[players][p]}</div>`}
     </div>`);
     panels.appendChild(pn);
@@ -46,37 +55,58 @@ export function showCarSelect(ui) {
     const prev = new CarPreview(pn.querySelector('canvas'));
     ui.previews.push(prev);
     const st = state[p];
-    let lastCar = -1, lastColor = -1;
+    if (!Profile.owns(st.car)) st.car = garage[0].id;
+    let lastKey = '';
     const upd = () => {
-      if (players === 2 && state[1 - p].color === st.color) st.color = (st.color + (st._dir || 1) + COLORS.length) % COLORS.length;
-      const car = CARS[st.car];
+      const other = players === 2 ? state[1 - p] : null;
+      // no repetir exactamente la misma pintura que el otro jugador
+      if (other && paintOf(other) === paintOf(st)) {
+        let i = swatchCols.indexOf(st.color);
+        do { i = (i + (st._dir || 1) + swatchCols.length) % swatchCols.length; st.color = swatchCols[i]; } while (paintOf(other) === paintOf(st));
+      }
+      const car = carById(st.car);
+      const gi = garage.findIndex(c => c.id === car.id);
+      pn.querySelector('.cardots').innerHTML = garage.length <= 12 ? garage.map((_, i) => `<i class="${i === gi ? 'on' : ''}"></i>`).join('') : `<span class="count">${gi + 1} / ${garage.length}</span>`;
+      pn.querySelector('.carclass').innerHTML = `<span style="--cc:${CLASSES[car.cls].color}">CLASE ${car.cls} · ${CLASSES[car.cls].name}</span> <small>${car.brand}</small>`;
       pn.querySelector('.carname').textContent = car.name;
-      pn.querySelector('.cardesc').textContent = car.desc;
-      pn.querySelector('.stats').innerHTML = Object.entries(car.stats).map(([k, v]) =>
-        `<div class="stat"><span>${STAT_LABELS[k]}</span><div class="bar"><i style="--v:${v / 5}"></i></div><b>${v}</b></div>`).join('');
-      pn.querySelectorAll('.cardots i').forEach((d, i) => d.classList.toggle('on', i === st.car));
-      pn.querySelectorAll('.sw').forEach((b, i) => {
-        b.classList.toggle('sel', i === st.color);
-        b.classList.toggle('taken', players === 2 && i === state[1 - p].color);
-      });
-      pn.style.setProperty('--pc', hex(COLORS[st.color].hex));
-      if (lastCar !== st.car || lastColor !== st.color) {
-        prev.set(car.shape, COLORS[st.color].hex);
-        if (lastCar !== st.car && lastCar >= 0) { pn.classList.remove('swap'); void pn.offsetWidth; pn.classList.add('swap'); }
-        lastCar = st.car; lastColor = st.color;
+      pn.querySelector('.carspecs').innerHTML = `<span><b>${car.top}</b> km/h</span><span><b>${car.zero.toFixed(1)}</b> s 0-100</span><span><b>${car.hp}</b> CV</span>`;
+      pn.querySelector('.stats').innerHTML = BARS.map(([k, l]) =>
+        `<div class="stat"><span>${l}</span><div class="bar"><i style="--v:${car.bars[k] / 10}"></i></div><b>${car.bars[k]}</b></div>`).join('');
+      pn.querySelector('.swatches').innerHTML = swatchCols.map(ci => {
+        const h = ci < 0 ? car.color : COLORS[ci].hex;
+        const taken = other && paintOf(other) === h;
+        return `<button class="sw ${ci === st.color ? 'sel' : ''} ${taken ? 'taken' : ''} ${ci < 0 ? 'factory' : ''}" data-c="${ci}" style="--sw:${hex(h)}" title="${ci < 0 ? 'Color de fábrica' : COLORS[ci].name}"></button>`;
+      }).join('');
+      pn.querySelectorAll('.sw').forEach(b => b.addEventListener('click', () => {
+        if (b.classList.contains('taken')) return;
+        st.color = +b.dataset.c; all(); ui.game.audio?.ui();
+      }));
+      const paint = paintOf(st);
+      pn.style.setProperty('--pc', hex(paint));
+      const key = car.id + paint;
+      if (key !== lastKey) {
+        if (lastKey && !lastKey.startsWith(car.id)) { pn.classList.remove('swap'); void pn.offsetWidth; pn.classList.add('swap'); }
+        prev.set(car, paint);
+        lastKey = key;
       }
     };
     refresh.push(upd);
-    pn._car = d => { st.car = (st.car + d + CARS.length) % CARS.length; all(); ui.game.audio?.ui(); };
-    pn._color = d => { st._dir = d; st.color = (st.color + d + COLORS.length) % COLORS.length; upd(); all(); ui.game.audio?.ui(); };
+    pn._car = d => {
+      const gi = garage.findIndex(c => c.id === st.car);
+      st.car = garage[(gi + d + garage.length) % garage.length].id;
+      all(); ui.game.audio?.ui();
+    };
+    pn._color = d => {
+      st._dir = d;
+      const i = swatchCols.indexOf(st.color);
+      st.color = swatchCols[(i + d + swatchCols.length) % swatchCols.length];
+      all(); ui.game.audio?.ui();
+    };
     pn.querySelectorAll('.arrow').forEach(b => b.addEventListener('click', () => pn._car(+b.dataset.d)));
-    pn.querySelectorAll('.sw').forEach(b => b.addEventListener('click', () => {
-      if (players === 2 && state[1 - p].color === +b.dataset.c) return; // color ocupado
-      st.color = +b.dataset.c; all(); ui.game.audio?.ui();
-    }));
-    upd();
   }
+  all();
   ui.click(n, '[data-a=back]', () => showMainMenu(ui));
+  ui.click(n, '[data-a=shop]', () => showDealer(ui, () => showCarSelect(ui)));
   ui.click(n, '[data-a=next]', () => { Settings.save(); showTrackSelect(ui); });
   ui.screen(n, { back: () => showMainMenu(ui), demo: true });
   ui.keyHandler = code => {

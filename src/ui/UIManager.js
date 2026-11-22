@@ -1,7 +1,8 @@
-import { CARS, COLORS } from '../cars/carData.js';
+import { CARS, carById } from '../cars/carData.js';
 import { TRACKS } from '../tracks/trackData.js';
-import { Settings } from '../game/Storage.js';
-import { el } from './dom.js';
+import { Settings, Profile } from '../game/Storage.js';
+import { paintOf } from './screens/CarSelect.js';
+import { el, money } from './dom.js';
 import { showMainMenu } from './screens/MainMenu.js';
 import { showPauseMenu } from './screens/PauseMenu.js';
 import { showResults } from './screens/Results.js';
@@ -34,7 +35,9 @@ export class UIManager {
     this.sema = el(`<div class="sema hidden"><i></i><i></i><i></i></div>`);
     this.fps = el(`<div class="fps hidden"></div>`);
     this.navhelp = el(`<div class="navhelp hidden"><span><kbd>↑</kbd><kbd>↓</kbd> Mover</span><span><kbd>Enter</kbd> Elegir</span><span class="nh-back"><kbd>Esc</kbd> Atrás</span></div>`);
-    this.root.append(this.sema, this.fps, this.navhelp);
+    this.moneyEl = el(`<div class="money-pill hidden"><span class="mp-ico">$</span><b></b></div>`);
+    this.root.append(this.sema, this.fps, this.navhelp, this.moneyEl);
+    this.updateMoney();
 
     game.on('pauseToggle', () => this.togglePause());
     game.on('layout', () => {
@@ -74,6 +77,8 @@ export class UIManager {
       if (opts.demo && !this.game.race) this.game.startDemo();
     }
     this.navhelp.classList.toggle('hidden', !node || this.game.isTouch || opts.noNav);
+    this.moneyEl.classList.toggle('hidden', !node || !!opts.overlay && !opts.showMoney);
+    this.updateMoney();
     this.navhelp.querySelector('.nh-back').classList.toggle('hidden', !opts.back);
     this.game.input.kb.captureGameKeys = !node;
   }
@@ -143,6 +148,11 @@ export class UIManager {
     this.fps.classList.toggle('hidden', !this.s.showFps);
   }
 
+  updateMoney(anim) {
+    this.moneyEl.querySelector('b').textContent = money(Profile.data.money).slice(1);
+    if (anim) { this.moneyEl.classList.remove('bump'); void this.moneyEl.offsetWidth; this.moneyEl.classList.add('bump'); }
+  }
+
   // ------------------------------------------------------------ barra superior
   toggleMute() {
     this.s.muted = !this.s.muted;
@@ -164,19 +174,30 @@ export class UIManager {
 
   // ------------------------------------------------------------ carrera
   buildEntries() {
-    const s = this.s, entries = [], used = new Set();
+    const s = this.s, entries = [], usedPaint = new Set(), usedCar = new Set();
     const ps = [s.p1, s.p2];
     for (let i = 0; i < this.mode; i++) {
-      entries.push({ car: CARS[ps[i].car], color: COLORS[ps[i].color].hex, human: true, humanIndex: i, name: 'Jugador ' + (i + 1) });
-      used.add(ps[i].color);
+      const car = carById(ps[i].car);
+      entries.push({ car, color: paintOf(ps[i]), human: true, humanIndex: i, name: 'Jugador ' + (i + 1) });
+      usedPaint.add(paintOf(ps[i])); usedCar.add(car.id);
     }
+    // rivales de la IA: autos de rendimiento parecido al mejor auto humano (más fuertes en difícil)
     const riv = this.mode === 1 ? s.rivals1p : s.rivals2p;
+    const ranked = CARS.slice().sort((a, b) => a.pi - b.pi);
+    const best = Math.max(...entries.map(e => ranked.indexOf(e.car)));
+    const range = [[-3, 0], [-2, 2], [0, 4]][s.difficulty];
     const names = ['Turbo', 'Chispa', 'Nitro'];
     for (let k = 0; k < riv; k++) {
-      let c = (k * 3 + 2) % COLORS.length;
-      while (used.has(c)) c = (c + 1) % COLORS.length;
-      used.add(c);
-      entries.push({ car: CARS[(k + 1 + (this.mode === 1 ? s.p1.car : 0)) % CARS.length], color: COLORS[c].hex, human: false, aiLevel: s.difficulty, name: 'CPU ' + names[k] });
+      let car = null;
+      for (let tries = 0; tries < 30 && !car; tries++) {
+        const idx = Math.max(0, Math.min(ranked.length - 1, best + range[0] + Math.floor(Math.random() * (range[1] - range[0] + 1))));
+        if (!usedCar.has(ranked[idx].id) || tries > 20) car = ranked[idx];
+      }
+      usedCar.add(car.id);
+      let color = car.color;
+      if (usedPaint.has(color)) color = [0xd4141e, 0x1d4ed8, 0xffc61f, 0x22b85a, 0xff7a00, 0x7a3bff].find(c => !usedPaint.has(c));
+      usedPaint.add(color);
+      entries.push({ car, color, human: false, aiLevel: s.difficulty, name: 'CPU ' + names[k] });
     }
     // humanos al fondo de la parrilla para que haya a quién alcanzar
     return [...entries.filter(e => !e.human), ...entries.filter(e => e.human)];

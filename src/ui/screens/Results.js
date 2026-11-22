@@ -1,5 +1,5 @@
-import { Records } from '../../game/Storage.js';
-import { el, hex, fmtTime } from '../dom.js';
+import { Records, Profile, Settings } from '../../game/Storage.js';
+import { el, hex, fmtTime, money } from '../dom.js';
 import { showTrackSelect } from './TrackSelect.js';
 
 export function showResults(ui) {
@@ -27,6 +27,23 @@ export function showResults(ui) {
       if (res.race) recMsgs.push(`¡Nuevo récord de carrera (${race.laps} v.)! ${row.r.name} · ${fmtTime(row.total)}`);
     }
   }
+  // ---- premios en dinero: según el puesto, vueltas, rivales y dificultad
+  const PRIZE = [15000, 9000, 5500, 3000];
+  const hasAI = race.racers.some(r => !r.human);
+  const diffMul = hasAI ? [0.75, 1, 1.4][Settings.data.difficulty] : 0.7;
+  const lapMul = Math.max(0.5, race.laps / 3);
+  const earnings = [];
+  rows.forEach((row, i) => {
+    if (!row.r.human || !row.r.finished) return;
+    let prize = Math.round(PRIZE[Math.min(3, i)] * diffMul * lapMul / 100) * 100;
+    const bonus = [];
+    if (recMsgs.some(m => m.includes(row.r.name) && m.includes('vuelta'))) { prize += 2500; bonus.push('récord de vuelta +$2.500'); }
+    if (recMsgs.some(m => m.includes(row.r.name) && m.includes('carrera'))) { prize += 5000; bonus.push('récord de carrera +$5.000'); }
+    earnings.push({ name: row.r.name, place: i + 1, prize, bonus });
+    Profile.earn(prize);
+  });
+  ui.updateMoney(true);
+
   const allBest = Math.min(...rows.map(r => r.best ?? Infinity));
   const pod = [rows[1], rows[0], rows[2]];
   const confetti = Array.from({ length: 36 }, (_, i) =>
@@ -43,6 +60,8 @@ export function showResults(ui) {
         <div class="pblock"><span>${[2, 1, 3][k]}</span></div>
       </div>` : '<div class="pod empty"></div>').join('')}</div>
     ${recMsgs.map(m => `<div class="newrec">🏆 ${m}</div>`).join('')}
+    ${earnings.length ? `<div class="earnings">${earnings.map(e => `<div class="earn"><span>${e.name} · ${e.place}º</span><b>+${money(e.prize)}</b>${e.bonus.length ? `<small>${e.bonus.join(' · ')}</small>` : ''}</div>`).join('')}
+      <div class="earn total"><span>Saldo</span><b>${money(Profile.data.money)}</b></div></div>` : ''}
     <div class="table-wrap"><table class="rtable">
       <tr><th>#</th><th>Piloto</th><th>Total</th><th>Mejor vuelta</th><th>Vueltas</th></tr>
       ${rows.map((row, i) => `<tr class="${row.r.human ? 'human' : ''}">
@@ -63,6 +82,6 @@ export function showResults(ui) {
     if (a === 'track') { ui.game.endRace(); ui.showPauseButton(false); showTrackSelect(ui); }
     if (a === 'menu') ui.exitToMenu();
   });
-  ui.screen(n, { overlay: true });
+  ui.screen(n, { overlay: true, showMoney: true });
   ui.showPauseButton(false);
 }

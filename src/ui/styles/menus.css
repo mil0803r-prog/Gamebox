@@ -241,3 +241,78 @@ h2 { margin: 0; font-family: var(--display); font-size: clamp(28px, 6.5vmin, 58p
   .stage { height: 22vmin; }
   .navhelp { display: none; }
 }
+
+/* ---------------------------------------------------------------- dinero */
+.money-pill { position: absolute; top: max(8px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); z-index: 20; display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px 6px 6px; border-radius: 999px; background: rgba(10,5,28,0.75); border: 1px solid rgba(255,225,77,0.6); box-shadow: 0 0 16px rgba(255,225,77,0.25);
+  font-weight: 900; font-size: clamp(14px, 2.6vmin, 19px); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.mp-ico { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, #ffe14d, #e0a000); color: #5a3a00; }
+.money-pill b { color: var(--yellow); font-variant-numeric: tabular-nums; }
+.money-pill.bump { animation: bump 0.6s cubic-bezier(.2,1.6,.4,1); }
+@keyframes bump { 30% { transform: scale(1.25); box-shadow: 0 0 30px rgba(255,225,77,0.8); } }
+.earnings { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.earn { display: grid; grid-template-columns: auto auto; gap: 0 12px; align-items: center; padding: 8px 14px; border-radius: 12px; background: rgba(47,224,122,0.18); border: 1px solid rgba(47,224,122,0.7); font-weight: 800; }
+.earn b { color: #5dff9a; font-size: 1.25em; }
+.earn small { grid-column: 1 / -1; opacity: 0.8; font-size: 0.75em; }
+.earn.total { background: rgba(255,225,77,0.14); border-color: rgba(255,225,77,0.7); }
+.earn.total b { color: var(--yellow); }
+.mbtn.shop { background: linear-gradient(180deg, #2fe0c0, #0f8a7a); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.35), 0 5px 0 #064a40, 0 10px 22px rgba(47,224,192,0.25); }
+
+/* ---------------------------------------------------------------- concesionario */
+.dealer-body { display: flex; gap: 16px; width: min(1240px, 98vw); flex: 1; min-height: 0; }
+.showroom { flex: 1.1; display: flex; flex-direction: column; border-radius: 20px; background: linear-gradient(180deg, rgba(40,24,90,0.75), rgba(10,6,26,0.85)); border: 1px solid var(--line); overflow: hidden; min-width: 0; }
+.showroom.bought { animation: bought 0.9s ease; }
+@keyframes bought { 20% { box-shadow: 0 0 0 4px var(--yellow), 0 0 60px rgba(255,225,77,0.8); } }
+.sr-stage { position: relative; flex: 1; min-height: 160px; }
+.sr-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+.sr-floor { position: absolute; left: 10%; right: 10%; bottom: 8%; height: 26%; border-radius: 50%; background: radial-gradient(ellipse, rgba(0,229,255,0.35), transparent 70%); filter: blur(6px); }
+.sr-badge { position: absolute; left: 14px; top: 12px; z-index: 2; }
+.sr-badge span, .carclass span { display: inline-block; padding: 4px 10px; border-radius: 8px; font-weight: 900; font-size: 12px; letter-spacing: 0.1em; background: var(--cc); color: #000; }
+.sr-info { padding: 12px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
+.sr-brand { font-size: 12px; letter-spacing: 0.35em; color: var(--cyan); font-weight: 900; }
+.sr-name { font-family: var(--display); font-style: italic; font-size: clamp(28px, 5.5vmin, 46px); line-height: 1; transform: skewX(-6deg); }
+.sr-specs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.sr-specs div { background: rgba(0,0,0,0.35); border-radius: 10px; padding: 6px 8px; display: flex; flex-direction: column; }
+.sr-specs b { font-size: clamp(16px, 3vmin, 22px); font-variant-numeric: tabular-nums; }
+.sr-specs small { font-size: 11px; color: var(--muted); font-weight: 700; }
+.sr-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+.sr-bars .stat, .carview + * .stat { font-size: 13px; }
+.sr-buy { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.sr-price { font-family: var(--display); font-size: clamp(24px, 4.5vmin, 36px); color: var(--yellow); font-style: italic; }
+.sr-price .owned { font-family: var(--font); font-style: normal; font-size: 16px; color: #5dff9a; font-weight: 900; }
+.sr-buy .btn { flex: none; }
+.sr-buy .btn:disabled { filter: grayscale(0.8) brightness(0.7); cursor: not-allowed; font-size: clamp(14px, 2.6vmin, 18px); }
+.sr-buy .btn.confirm { animation: pulse 0.4s infinite alternate; }
+.lot { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab { font-family: inherit; font-weight: 800; font-size: 13px; color: #fff; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0,0,0,0.4); cursor: pointer; touch-action: manipulation; }
+.tab.on { background: var(--cc, var(--yellow)); color: #000; border-color: transparent; }
+.lot-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 2px 4px 8px 2px; align-content: start; touch-action: pan-y; max-height: 62vh; }
+.lot-card { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 8px; border-radius: 14px; border: 1px solid var(--line); background: rgba(14,8,34,0.8); color: #fff;
+  font-family: inherit; text-align: left; cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; touch-action: manipulation; }
+.lot-card:hover, .lot-card:focus-visible { transform: translateY(-2px); outline: none; border-color: rgba(255,255,255,0.4); }
+.lot-card.sel { box-shadow: 0 0 0 3px var(--yellow), 0 0 22px rgba(255,225,77,0.35); }
+.lot-card.locked img { filter: grayscale(0.7) brightness(0.6); }
+.lot-card.own { border-color: rgba(47,224,122,0.6); }
+.lot-card img { width: 100%; aspect-ratio: 9 / 5; object-fit: contain; opacity: 0; transition: opacity 0.3s; }
+.lot-card img.ok { opacity: 1; }
+.lc-cls { position: absolute; top: 6px; left: 6px; font-size: 11px; font-weight: 900; padding: 2px 7px; border-radius: 6px; background: var(--cc); color: #000; z-index: 1; }
+.lc-name { font-weight: 900; font-size: 14px; line-height: 1.1; }
+.lc-name small { display: block; font-size: 10px; letter-spacing: 0.2em; color: var(--muted); }
+.lc-row { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: var(--muted); }
+.lc-row b { color: var(--yellow); }
+.lot-card.own .lc-row b { color: #5dff9a; }
+.lot-card.locked .lc-row b { color: #ff8a8a; }
+.carclass { font-size: 12px; }
+.carclass small { color: var(--muted); letter-spacing: 0.2em; font-weight: 800; margin-left: 6px; }
+.carspecs { display: flex; gap: 12px; font-size: clamp(12px, 2.2vmin, 14px); color: var(--muted); font-weight: 700; }
+.carspecs b { color: #fff; }
+.cardots .count { font-size: 12px; color: var(--muted); font-weight: 800; }
+.sw.factory { position: relative; }
+.sw.factory::after { content: '★'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; text-shadow: 0 1px 2px #000; }
+@media (max-width: 800px), (orientation: portrait) {
+  .dealer-body { flex-direction: column; }
+  .sr-stage { min-height: 28vh; }
+  .lot-grid { max-height: none; overflow: visible; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .sr-specs { grid-template-columns: repeat(2, 1fr); }
+}

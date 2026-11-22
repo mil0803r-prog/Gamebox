@@ -4,11 +4,13 @@ import './ui/styles/menus.css';
 import './ui/styles/touch.css';
 import { Game } from './game/Game.js';
 import { UIManager } from './ui/UIManager.js';
+import { Profile } from './game/Storage.js';
 
 const game = new Game(document.getElementById('app'));
 const ui = new UIManager(game);
 window.__game = game;
 window.__ui = ui;
+window.__profile = Profile; // útil para depurar
 
 // evitar zoom y gestos del navegador
 document.addEventListener('gesturestart', e => e.preventDefault());
