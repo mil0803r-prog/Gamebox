@@ -41,3 +41,6 @@
 .tilt-note { font-size: 13px; font-weight: 700; color: var(--cyan); padding: 4px 0; }
 .tbtn.cam { position: absolute; left: 50%; top: 42%; transform: translateX(-50%); width: calc(var(--bs) * 0.6); height: calc(var(--bs) * 0.6); font-size: calc(var(--bs) * 0.26); opacity: 0.75; }
 .tbtn.cam.on { transform: translateX(-50%) scale(0.9); }
+.tbtn.fire { position: absolute; right: max(12px, env(safe-area-inset-right)); bottom: calc(var(--bs) * 2.5); width: calc(var(--bs) * 0.95); height: calc(var(--bs) * 0.95);
+  background: rgba(255,51,85,0.28); border-color: rgba(255,90,110,0.95); font-size: calc(var(--bs) * 0.34); }
+.tbtn.wnext { position: absolute; right: calc(max(12px, env(safe-area-inset-right)) + var(--bs) * 1.05); bottom: calc(var(--bs) * 2.6); width: calc(var(--bs) * 0.55); height: calc(var(--bs) * 0.55); font-size: calc(var(--bs) * 0.28); }

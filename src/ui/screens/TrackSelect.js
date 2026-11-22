@@ -52,6 +52,7 @@ export function showTrackSelect(ui) {
       <div class="opt"><span>Rivales IA</span><div class="stepper"><button class="btn sm" data-o="riv-">−</button><b class="v-riv"></b><button class="btn sm" data-o="riv+">+</button></div></div>
       <div class="opt o-diff"><span>Dificultad IA</span><div class="seg" data-o="diff">${DIFF.map((d, i) => `<button class="segb" data-v="${i}">${d}</button>`).join('')}</div></div>
       <div class="opt"><span>Monedas y cajones 🪙</span><div class="seg" data-o="pickups"><button class="segb" data-v="0">No</button><button class="segb" data-v="1">Sí</button></div></div>
+      <div class="opt o-weap"><span>Disparos 🎯</span><div class="seg" data-o="weapons"><button class="segb" data-v="0">No</button><button class="segb" data-v="1">Sí</button></div></div>
       <div class="opt"><span>Ítems en pista</span><div class="seg" data-o="items"><button class="segb" data-v="0">No</button><button class="segb" data-v="1">Sí</button></div></div>
     </div>
     <div class="menu-row bottom">
@@ -68,6 +69,8 @@ export function showTrackSelect(ui) {
     n.querySelector('.v-riv').textContent = s[rivKey];
     n.querySelectorAll('[data-o=diff] .segb').forEach(b => b.classList.toggle('on', +b.dataset.v === s.difficulty));
     n.querySelectorAll('[data-o=pickups] .segb').forEach(b => b.classList.toggle('on', +b.dataset.v === (s.pickups !== false ? 1 : 0)));
+    n.querySelectorAll('[data-o=weapons] .segb').forEach(b => b.classList.toggle('on', +b.dataset.v === (s.weapons !== false ? 1 : 0)));
+    n.querySelector('.o-weap').classList.toggle('dim', s.pickups === false);
     n.querySelectorAll('[data-o=items] .segb').forEach(b => b.classList.toggle('on', +b.dataset.v === (s.items ? 1 : 0)));
     n.querySelector('.o-diff').classList.toggle('dim', s[rivKey] === 0);
   };
@@ -77,6 +80,7 @@ export function showTrackSelect(ui) {
     if (o === 'diff') s.difficulty = +b.dataset.v;
     if (o === 'items') s.items = b.dataset.v === '1';
     if (o === 'pickups') s.pickups = b.dataset.v === '1';
+    if (o === 'weapons') s.weapons = b.dataset.v === '1';
     upd();
   });
   ui.click(n, 'button[data-o]', (e, b) => {

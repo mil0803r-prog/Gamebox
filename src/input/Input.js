@@ -36,6 +36,8 @@ export class InputManager {
         if (kb.any(m.boost)) st.boost = true;
         if (kb.any(m.item)) st.item = true;
         for (const c of m.cam) if (kb.pressedOnce.has(c)) st.camPressed = true;
+        for (const c of m.fire) { if (kb.pressedOnce.has(c)) st.firePressed = true; if (kb.down.has(c)) st.fire = true; }
+        for (const c of m.next) if (kb.pressedOnce.has(c)) st.weaponNextPressed = true;
       }
       st.steer = Math.max(-1, Math.min(1, st.steer));
       // mandos
@@ -50,6 +52,8 @@ export class InputManager {
         st.item = st.item || g.item;
         st.pausePressed = st.pausePressed || g.pausePressed;
         st.camPressed = st.camPressed || g.camPressed;
+        st.fire = st.fire || g.fire; st.firePressed = st.firePressed || g.firePressed;
+        st.weaponNextPressed = st.weaponNextPressed || g.nextPressed;
       }
       // táctil
       if (this.touch) this.touch.apply(p, st, this.humans);

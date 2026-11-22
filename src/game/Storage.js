@@ -9,7 +9,7 @@ function load(key, def) {
 function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch { /* sin almacenamiento */ } }
 
 export const DEFAULT_SETTINGS = {
-  laps: 3, items: false, pickups: true, difficulty: 1, rivals1p: 3, rivals2p: 0,
+  laps: 3, items: false, pickups: true, weapons: true, difficulty: 1, rivals1p: 3, rivals2p: 0,
   autoAccel: true, showKeys: true, camera: 'near', steerMode: 'buttons', tiltSens: 'medium', tiltInvert: false, orientation: 'landscape', split: 'auto', quality: 'auto', music: true, sfx: true, muted: false, showFps: false,
   p1: { car: 'rayo', color: -1 }, p2: { car: 'pulga', color: -1 }, track: 0,
 };
@@ -39,7 +39,7 @@ export const Records = {
 // ---------------------------------------------------------------- dinero y garaje
 export const START_MONEY = 25000;
 export const Profile = {
-  data: load(KEY_PRO, { money: START_MONEY, owned: ['pulga', 'rayo'], earned: 0 }),
+  data: load(KEY_PRO, { money: START_MONEY, owned: ['pulga', 'rayo'], earned: 0, weapons: [] }),
   save() { save(KEY_PRO, this.data); },
   owns(id) { return this.data.owned.includes(id); },
   canAfford(price) { return this.data.money >= price; },
@@ -47,6 +47,14 @@ export const Profile = {
     if (this.owns(car.id) || this.data.money < car.price) return false;
     this.data.money -= car.price;
     this.data.owned.push(car.id);
+    this.save();
+    return true;
+  },
+  ownsWeapon(id) { return (this.data.weapons || []).includes(id); },
+  buyWeapon(w) {
+    if (this.ownsWeapon(w.id) || this.data.money < w.price) return false;
+    this.data.money -= w.price;
+    (this.data.weapons ||= []).push(w.id);
     this.save();
     return true;
   },

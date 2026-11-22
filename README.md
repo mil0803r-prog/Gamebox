@@ -44,6 +44,7 @@ Usa rutas relativas, así que funciona en la raíz o en una subcarpeta. Tras la 
 - **Pads de turbo**, **rampas** y **atajos** (camino amarillo en el mini-mapa) en cada pista.
 - **Monedas y cajones sorpresa** en todas las pistas (se pueden apagar): cada moneda vale $50; los cajones dan bolsa de dinero, turbo lleno, escudo, imán de monedas o el premio mayor de $10.000. Hay más monedas en los atajos y en el aire sobre las rampas.
 - **Autopista Costera**: pista de día de 4 carriles junto al mar y un puerto, con tráfico (autos, camionetas y camiones) que hay que esquivar.
+- **Armería y disparos**: compra armas con dinero (cañón láser, minas, misil guiado y pulso EMP). En la carrera cada disparo gasta monedas recogidas en la pista (1, 3, 6 y 10 monedas). J1: `F` disparar, `R` cambiar arma · J2: `.` y `,` · Mando: `Y` · Celular: botón 🎯. La IA en Normal/Difícil también dispara. El escudo bloquea los impactos.
 - **Modo ítems** (opcional): turbo extra, mancha de aceite y escudo.
 
 ## Autos y concesionario

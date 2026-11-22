@@ -42,6 +42,7 @@ export class TouchControls {
           <div class="tbtn boost" data-b="boost">🔥<small>TURBO</small></div>
         </div>`;
       z.insertAdjacentHTML('beforeend', '<div class="tbtn cam" data-b="cam">🎥</div>');
+      if (opts.weapons) z.insertAdjacentHTML('beforeend', '<div class="tbtn fire" data-b="fire">🎯<small>DISPARO</small></div><div class="tbtn wnext" data-b="wnext">⇄</div>');
       this.root.appendChild(z);
       const zone = { el: z, pointers: new Map(), state: {}, btns: [...z.querySelectorAll('.tbtn, .tw-center')], wheel: z.querySelector('.tw-ring') };
       if (opts.tilt) this.used[i] = true; // con inclinación, acelera solo aunque no toques la pantalla
@@ -120,6 +121,10 @@ export class TouchControls {
       if (s.center && this.onCenter) { this.onCenter(); s.center = false; }
       if (s.cam && !z.camWas) st.camPressed = true;
       z.camWas = !!s.cam;
+      if (s.fire) { st.fire = true; if (!z.fireWas) st.firePressed = true; }
+      z.fireWas = !!s.fire;
+      if (s.wnext && !z.nextWas) st.weaponNextPressed = true;
+      z.nextWas = !!s.wnext;
       if (this.autoAccel && this.used[humans === 1 ? 0 : p] && !s.brake) st.throttle = 1;
     }
   }

@@ -45,7 +45,7 @@ export class Race {
     return Math.ceil(-this.time / CONFIG.race.countdownStep);
   }
 
-  update(dt, inputs, aiSystem, items, pickups) {
+  update(dt, inputs, aiSystem, items, pickups, weapons) {
     const prevCount = this.countdownValue;
     this.time += dt;
     if (this.state === 'countdown') {
@@ -90,6 +90,7 @@ export class Race {
       }
       if (items) items.update(dt, this, ins);
       if (pickups) pickups.update(dt, this);
+      if (weapons) weapons.update(dt, this, ins);
       for (const r of this.racers) this.updateProgress(r, dt);
       this.updatePlaces();
     }

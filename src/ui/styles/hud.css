@@ -128,3 +128,9 @@
 .phud.interior .ph-gauge { bottom: 22%; }
 .phud.interior .keyhints { display: none; }
 .ph-msg.cam { font-size: 1.6em; color: #fff; }
+.ph-weapon { --wc: #ff3355; display: flex; align-items: center; gap: 0.4em; margin-top: 0.35em; padding: 0.25em 0.6em 0.25em 0.35em; border-radius: 0.6em;
+  background: rgba(0,0,0,0.5); border: 1px solid var(--wc); box-shadow: 0 0 0.6em color-mix(in srgb, var(--wc) 40%, transparent); font-size: 0.78em; line-height: 1.1; }
+.ph-weapon .pw-ico { font-size: 1.5em; }
+.ph-weapon b { display: block; font-size: 0.95em; }
+.ph-weapon small { font-size: 0.7em; opacity: 0.8; }
+.ph-weapon.empty { opacity: 0.5; border-color: rgba(255,255,255,0.3); box-shadow: none; }

@@ -12,6 +12,8 @@ import { AISystem } from './AI.js';
 import { Items } from './Items.js';
 import { Pickups } from './Pickups.js';
 import { Traffic } from './Traffic.js';
+import { Weapons } from './Weapons.js';
+import { Profile } from './Storage.js';
 import { Quality } from './Quality.js';
 import { Settings } from './Storage.js';
 import { splitMode, computeViews } from './Viewports.js';
@@ -117,6 +119,9 @@ export class Game {
     this.pickups = cfg.pickups !== false ? new Pickups(this.scene, this.track) : null;
     this.traffic = def.traffic ? new Traffic(this.scene, this.track) : null;
     this.race.traffic = this.traffic;
+    // disparos: solo con monedas en la pista; los humanos usan las armas compradas
+    this.weapons = cfg.weapons && this.pickups ? new Weapons(this.scene, this.track, this.race, Profile.data.weapons || []) : null;
+    this.race.weapons = this.weapons;
 
     const humans = this.race.racers.filter(r => r.human).sort((a, b) => a.humanIndex - b.humanIndex);
     this.input.setHumans(Math.max(1, humans.length));
@@ -134,7 +139,7 @@ export class Game {
     }
     this.rigs.forEach(r => this.scene.add(r.camera));
     this.effects.attach(this.race, this.rigs, def.theme);
-    this.huds = humans.map(r => new PlayerHUD(this.hudLayer, this.track, r, { items: !!cfg.items, isTouch: this.isTouch, humans: humans.length }));
+    this.huds = humans.map(r => new PlayerHUD(this.hudLayer, this.track, r, { items: !!cfg.items, isTouch: this.isTouch, humans: humans.length, weapons: this.weapons }));
     this.huds.forEach((h, i) => this.rigs[i] && h.setInterior(this.rigs[i].mode === 'interior'));
     this.computeViews();
     if (!cfg.demo) {
@@ -142,7 +147,7 @@ export class Game {
       tilt.enabled = this.isTouch && cfg.steerMode === 'tilt' && humans.length === 1;
       tilt.sens = Settings.data.tiltSens; tilt.invert = Settings.data.tiltInvert;
       if (tilt.enabled) { tilt.listen(); tilt.calibrate(); this.touch.onCenter = () => tilt.calibrate(); }
-      if (this.isTouch) this.touch.build(this.views, { autoAccel: cfg.autoAccel !== false, items: !!cfg.items, tilt: tilt.enabled });
+      if (this.isTouch) this.touch.build(this.views, { autoAccel: cfg.autoAccel !== false, items: !!cfg.items, tilt: tilt.enabled, weapons: !!this.weapons && (Profile.data.weapons || []).length > 0 });
       this.audio.attach(this.race, this.rigs, this.splitMode() === 'cols');
     }
     this.applyPixelRatio();
@@ -189,6 +194,7 @@ export class Game {
     if (this.items) { this.items.dispose(); this.items = null; }
     if (this.pickups) { this.pickups.dispose(); this.pickups = null; }
     if (this.traffic) { this.traffic.dispose(); this.traffic = null; }
+    if (this.weapons) { this.weapons.dispose(); this.weapons = null; }
     if (this.race) for (const r of this.race.racers) this.scene.remove(r.car.model.root);
     this.effects.detach();
     this.touch.clear();
@@ -222,7 +228,7 @@ export class Game {
 
   updateRace(dt, inputs) {
     const race = this.race;
-    race.update(dt, inputs, this.ai, this.items, this.pickups);
+    race.update(dt, inputs, this.ai, this.items, this.pickups, this.weapons);
     this.trackScene.update(dt, race.time);
     // cambio de cámara (tecla C / "/" , botón Select del mando o botón táctil)
     this.rigs.forEach((rig, i) => {

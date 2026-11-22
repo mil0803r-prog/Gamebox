@@ -321,6 +321,14 @@ export class Effects {
     });
     for (const e of race.events) {
       if (e.type === 'coin') this.burst(e.x, e.y, e.z, 0xffd84a, 8, 4, 0.4, 0.3, 2);
+      if (e.type === 'hit') {
+        if (e.weapon === 'laser') this.burst(e.x, e.y, e.z, 0xff5070, 8, 6, 0.3, 0.3, 4);
+        else if (e.weapon === 'emp') this.burst(e.x, e.y, e.z, 0x60d8ff, 16, 5, 0.6, 0.35, 0);
+        else { this.burst(e.x, e.y, e.z, 0xff8a1f, 40, 11, 0.7, 0.6, 3); this.burst(e.x, e.y, e.z, 0xfff0a0, 14, 5, 0.4, 0.9, 0); this.burst(e.x, e.y + 0.5, e.z, 0x555555, 12, 3, 1.2, 1.4, -1); }
+      }
+      if (e.type === 'boom') this.burst(e.x, e.y, e.z, 0xff8a1f, 30, 9, 0.6, 0.6, 3);
+      if (e.type === 'trail') this.particles.emit(e.x, e.y, e.z, (Math.random() - 0.5), Math.random() * 0.5, (Math.random() - 0.5), Math.random() < 0.5 ? 0xffa020 : 0x888888, 0.35, 0.5, -0.5);
+      if (e.type === 'shot' && e.weapon.id === 'laser') this.particles.emit(e.x, e.y + 0.7, e.z, 0, 0.5, 0, 0xff5070, 0.12, 0.6, 0);
       if (e.type === 'chest') this.burst(e.x, e.y + 1, e.z, e.kind === 'jackpot' ? 0xff4fd8 : 0xffc61f, 34, 9, 0.8, 0.45, 5);
     }
     P.update(dt);

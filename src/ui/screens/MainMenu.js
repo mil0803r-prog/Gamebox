@@ -7,6 +7,7 @@ import { showOptions } from './Options.js';
 import { showRecords } from './Records.js';
 import { showControls } from './Controls.js';
 import { showDealer } from './Dealer.js';
+import { showArmory } from './Armory.js';
 
 // Iconos de línea (SVG) para el menú
 const ICON = {
@@ -15,6 +16,7 @@ const ICON = {
   shop: '<path d="M4 9h16l-1.5-5h-13zM5 9v11h14V9M9 20v-6h6v6"/>',
   pad: '<path d="M7 9h10a4 4 0 014 4v1a3 3 0 01-5.2 2l-1.3-1.5h-5l-1.3 1.5A3 3 0 013 14v-1a4 4 0 014-4z"/><path d="M8 11.5v3M6.5 13h3"/><circle cx="16" cy="12.5" r=".6"/><circle cx="17.6" cy="14" r=".6"/>',
   trophy: '<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4.5c0 3 1.5 4.5 3.7 4.8M16 6h3.5c0 3-1.5 4.5-3.7 4.8M12 13v4M8.5 20h7l-1-3h-5z"/>',
+  aim: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
   gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
 };
 const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
@@ -23,6 +25,7 @@ const ITEMS = [
   ['1', 'race', 'Carrera', 'Un jugador contra pilotos de la IA'],
   ['2', 'duo', 'Dos jugadores', 'Pantalla dividida en el mismo equipo'],
   ['shop', 'shop', 'Concesionario', 'Compra autos con el dinero que ganas'],
+  ['arm', 'aim', 'Armería', 'Compra armas: disparar gasta monedas'],
   ['rec', 'trophy', 'Récords', 'Tus mejores tiempos en cada pista'],
   ['ctl', 'pad', 'Controles', 'Teclado, mando y pantalla táctil'],
   ['opt', 'gear', 'Opciones', 'Cámara, gráficos, sonido y celular'],
@@ -87,6 +90,7 @@ export function showMainMenu(ui) {
     if (a === 'rec') showRecords(ui);
     if (a === 'ctl') showControls(ui);
     if (a === 'shop') showDealer(ui);
+    if (a === 'arm') showArmory(ui);
   });
   ui.screen(n, { demo: true, noNav: true, noMoney: true });
 }

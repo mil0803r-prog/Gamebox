@@ -239,7 +239,7 @@ export class UIManager {
     this.enterLandscape();
     this.screen(null);
     this.game.settings.split = s.split;
-    this.game.startRace({ trackId: TRACKS[s.track].id, laps: s.laps, items: s.items, entries: this.buildEntries(), autoAccel: s.autoAccel, steerMode: s.steerMode, pickups: s.pickups !== false });
+    this.game.startRace({ trackId: TRACKS[s.track].id, laps: s.laps, items: s.items, entries: this.buildEntries(), autoAccel: s.autoAccel, steerMode: s.steerMode, pickups: s.pickups !== false, weapons: s.weapons !== false });
     this.showPauseButton(true);
     this.resultsShown = false;
     this.game.audio?.music(TRACKS[s.track].theme);

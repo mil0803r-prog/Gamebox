@@ -60,6 +60,7 @@ export class PlayerHUD {
         <div class="ph-lapbar"><i></i></div>
         <div class="ph-time">0:00.00</div>
         <div class="ph-best"></div>
+        <div class="ph-weapon hidden"><span class="pw-ico"></span><div><b class="pw-name"></b><small class="pw-cost"></small></div></div>
         <div class="ph-coins hidden"><i>🪙</i><b class="ph-coinn">0</b><span class="ph-cash"></span></div>
         <div class="ph-board"></div>
       </div>
@@ -82,6 +83,7 @@ export class PlayerHUD {
     this.board = q('.ph-board');
     this.boostFx = q('.ph-boostfx');
     this.cockpit = q('.ph-cockpit'); this.ckWheel = q('.ck-wheel');
+    this.weaponEl = q('.ph-weapon'); this.pwIco = q('.pw-ico'); this.pwName = q('.pw-name'); this.pwCost = q('.pw-cost');
     this.coinsEl = q('.ph-coins'); this.coinN = q('.ph-coinn'); this.cash = q('.ph-cash');
     this.gauge = q('.ph-gauge'); this.spd = q('.ph-spd'); this.tpct = q('.ph-tpct');
     this.spdArc = q('.g-spd'); this.turboArc = q('.g-turbo');
@@ -146,6 +148,20 @@ export class PlayerHUD {
     const bestLap = r.lapTimes.length ? Math.min(...r.lapTimes) : null;
     this.set('best', this.best, bestLap ? 'Mejor ' + fmtTime(bestLap) : '');
 
+    // arma actual: se atenúa si no alcanzan las monedas
+    const W = this.opts.weapons, w = W ? W.current(r) : null;
+    if (w) {
+      const ok = (r.coins || 0) >= w.cost;
+      const key = w.id + ok + (r.fireCd > 0);
+      if (this.last.wkey !== key) {
+        this.last.wkey = key;
+        this.weaponEl.classList.remove('hidden');
+        this.weaponEl.classList.toggle('empty', !ok);
+        this.weaponEl.style.setProperty('--wc', '#' + w.color.toString(16).padStart(6, '0'));
+        this.pwIco.textContent = w.icon; this.pwName.textContent = w.name;
+        this.pwCost.textContent = `🪙 ${w.cost} por disparo` + (r.weapons.length > 1 ? ' · cambiar' : '');
+      }
+    }
     // monedas y dinero ganado en la carrera
     const earned = (r.coins || 0) * COIN_VALUE + (r.bonus || 0);
     if (this.last.earned !== earned) {

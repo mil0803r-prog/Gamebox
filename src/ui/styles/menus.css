@@ -426,3 +426,17 @@ h2 { margin: 0; font-family: var(--display); font-size: clamp(28px, 6.5vmin, 58p
   .mm-car small { font-size: 9px; }
   .mm-prompts { padding-top: 4px; font-size: 12px; }
 }
+
+/* ---------------------------------------------------------------- armería */
+.arm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; width: min(1100px, 96vw); }
+.arm-card { --wc: #ff3355; display: flex; flex-direction: column; gap: 8px; padding: 16px; background: linear-gradient(180deg, color-mix(in srgb, var(--wc) 18%, rgba(10,12,22,0.85)), rgba(8,10,18,0.9) 55%);
+  border: 1px solid rgba(255,255,255,0.12); border-top: 3px solid var(--wc); }
+.arm-card.own { border-color: rgba(47,224,122,0.6); border-top-color: #2fe07a; }
+.arm-ico { font-size: 40px; filter: drop-shadow(0 0 12px var(--wc)); }
+.arm-name { font-family: var(--display); font-weight: 800; font-style: italic; font-size: 26px; text-transform: uppercase; }
+.arm-card p { margin: 0; color: rgba(255,255,255,0.75); font-size: 14px; line-height: 1.4; min-height: 3em; }
+.arm-stats { display: flex; justify-content: space-between; font-size: 13px; color: rgba(255,255,255,0.65); font-weight: 600; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px; }
+.arm-stats b { color: #fff; }
+.arm-buy { margin-top: auto; font-size: 16px; }
+.arm-buy:disabled { opacity: 0.6; cursor: default; filter: grayscale(0.4); }
+.arm-note, .arm-keys { max-width: 900px; text-align: center; font-size: 14px; color: rgba(255,255,255,0.75); }

@@ -23,7 +23,8 @@ export class Gamepads {
     const st = {
       steer, throttle, brake: brake > 0.1 ? brake : 0,
       drift: b(5) > 0.5, boost: b(1) > 0.5,
-      item: b(4) > 0.5 || b(3) > 0.5,
+      item: b(4) > 0.5,
+      fire: b(3) > 0.5, next: b(10) > 0.5,
       pause: b(9) > 0.5,
     };
     const prev = this.prev[slot] || {};
@@ -31,6 +32,8 @@ export class Gamepads {
     st.pausePressed = st.pause && !prev.pause;
     st.cam = b(8) > 0.5 || b(11) > 0.5; // Select/View o clic del stick derecho
     st.camPressed = st.cam && !prev.cam;
+    st.firePressed = st.fire && !prev.fire;
+    st.nextPressed = st.next && !prev.next;
     st.confirmPressed = b(0) > 0.5 && !prev.confirm;
     st.confirm = b(0) > 0.5;
     this.prev[slot] = st;

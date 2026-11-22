@@ -37,7 +37,7 @@ export class Car {
     // rebufo
     this.slipTime = 0; this.slipActive = false;
     // ítems
-    this.shieldTimer = 0; this.spinTimer = 0; this.item = null; this.magnetTimer = 0;
+    this.shieldTimer = 0; this.spinTimer = 0; this.item = null; this.magnetTimer = 0; this.slowTimer = 0;
     // eventos de este frame (para sonido / efectos)
     this.ev = { wall: 0, land: 0, miniTurbo: 0, pad: false, bump: 0, backfire: false };
     this.progress = this.q.progress;
@@ -89,6 +89,7 @@ export class Car {
       if (this.boostTimer <= 0) { this.boostMul = 1; this.boostAccel = 0; }
     }
     if (this.slipActive) mul *= CONFIG.slipstream.speedMul;
+    if (this.slowTimer > 0) { this.slowTimer -= dt; mul *= 0.78; } // impacto de láser o EMP
     const vmax = this.maxSpeed * mul;
 
     // ---------- derrape: entrar / salir

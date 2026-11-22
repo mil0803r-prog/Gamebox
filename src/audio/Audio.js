@@ -262,6 +262,43 @@ export class AudioSys {
     n.connect(f);
     this.out(this.env(f, t, vol, 0.6), pan);
   }
+  // disparos
+  weapon(id, vol = 1) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (id === 'laser') {
+      const o = this.osc('square', 1400, t, 0.12);
+      o.frequency.exponentialRampToValueAtTime(260, t + 0.11);
+      const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 3000; o.connect(f);
+      this.out(this.env(f, t, 0.09 * vol, 0.12));
+    } else if (id === 'missile') {
+      this.whoosh(0.35 * vol, 0.7);
+      const o = this.osc('sawtooth', 120, t, 0.4); o.frequency.exponentialRampToValueAtTime(60, t + 0.4);
+      this.out(this.env(o, t, 0.08 * vol, 0.4));
+    } else if (id === 'mine') {
+      const o = this.osc('triangle', 300, t, 0.15); o.frequency.exponentialRampToValueAtTime(150, t + 0.15);
+      this.out(this.env(o, t, 0.15 * vol, 0.15));
+    } else if (id === 'emp') {
+      const o = this.osc('sawtooth', 80, t, 0.7); o.frequency.exponentialRampToValueAtTime(1800, t + 0.25);
+      const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 2; o.connect(f);
+      this.out(this.env(f, t, 0.25 * vol, 0.7));
+    }
+  }
+  hit(type) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (type === 'laser') { this.crash(0.25, 0, 2500); return; }
+    if (type === 'emp') { this.beep(220, 0.3, 0.12, 'sawtooth'); return; }
+    // explosión: estallido + golpe grave
+    const n = this.noise(t, 1.0);
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass';
+    f.frequency.setValueAtTime(2500, t); f.frequency.exponentialRampToValueAtTime(200, t + 0.9);
+    n.connect(f);
+    this.out(this.env(f, t, 0.7, 0.9));
+    const o = this.osc('sine', 90, t, 0.6); o.frequency.exponentialRampToValueAtTime(30, t + 0.6);
+    this.out(this.env(o, t, 0.5, 0.6));
+  }
+
   // petardeo del escape: dos golpes secos
   pop(pan = 0) {
     if (!this.ctx) return;

@@ -41,6 +41,24 @@ export function handleRaceEvents(game, race) {
         if (human) audio.chest(e.kind);
         if (h) { const [t, sub] = PRIZE_TEXT[e.kind](e.amount); h.flash(t, sub, 1.5, 'chest ' + e.kind); }
         break;
+      case 'shot':
+        if (human) audio.weapon(e.weapon.id);
+        else if (e.weapon.id === 'missile') audio.weapon('missile', 0.5);
+        break;
+      case 'hit':
+        audio.hit(e.weapon);
+        if (h) h.flash(e.weapon === 'laser' ? '¡TE DISPARAN!' : e.weapon === 'emp' ? '¡PULSO EMP!' : '¡IMPACTO!', e.by ? (e.by.human ? 'J' + (e.by.humanIndex + 1) : e.by.name) : '', 0.7, 'mini lvl2');
+        if (e.by && e.by.human && e.weapon !== 'laser') { const hb = hudOf(e.by); hb && hb.flash('¡LE DISTE!', e.racer.name, 0.8, 'mini lvl1'); }
+        break;
+      case 'noCoins':
+        if (h) h.flash('SIN MONEDAS', `${e.weapon.name} cuesta ${e.weapon.cost} 🪙`, 0.9, 'mini');
+        break;
+      case 'weaponSwitch':
+        if (h) h.flash(e.weapon.icon + ' ' + e.weapon.name.toUpperCase(), '', 0.6, 'cam');
+        break;
+      case 'boom':
+        audio.hit('missile');
+        break;
       case 'oilHit':
         audio.item('oil');
         if (h) h.flash('¡ACEITE!', '', 0.8, 'mini lvl2');
