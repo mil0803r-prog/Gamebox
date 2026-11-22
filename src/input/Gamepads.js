@@ -7,7 +7,8 @@ export class Gamepads {
     window.addEventListener('gamepaddisconnected', () => this.connected = Math.max(0, this.connected - 1));
   }
   list() {
-    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    let pads = [];
+    try { pads = navigator.getGamepads ? navigator.getGamepads() : []; } catch { pads = []; } // bloqueado en algunos iframes
     const out = [];
     for (const p of pads) if (p && p.connected) out.push(p);
     return out;
