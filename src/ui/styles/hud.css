@@ -114,3 +114,17 @@
 .ph-boostfx.turbo { opacity: 0.9; }
 @keyframes boostfx { 0% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.03) rotate(0.6deg); } 100% { transform: scale(1) rotate(0deg); } }
 @media (prefers-reduced-motion: reduce) { .ph-boostfx.on { animation: none; } }
+
+/* cámara interior: volante, tablero y pilares */
+.ph-cockpit { position: absolute; inset: 0; pointer-events: none; }
+.ck-dash { position: absolute; left: -5%; right: -5%; bottom: -2%; height: 20%;
+  background: linear-gradient(180deg, #1b1c22 0%, #0c0d10 60%); border-radius: 50% 50% 0 0 / 40% 40% 0 0; box-shadow: 0 -6px 20px rgba(0,0,0,0.5); }
+.ck-wheel { position: absolute; left: 50%; bottom: -24%; width: min(52%, 62vh); aspect-ratio: 1; transform: translateX(-50%); transform-origin: 50% 50%; transition: transform 0.05s linear;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6)); }
+.ck-wheel svg { width: 100%; height: 100%; display: block; }
+.ck-pillar { position: absolute; top: -5%; bottom: 10%; width: 9%; background: linear-gradient(90deg, #0c0d10, #1a1b20); }
+.ck-pillar.l { left: -2%; transform: skewX(14deg); }
+.ck-pillar.r { right: -2%; transform: skewX(-14deg); }
+.phud.interior .ph-gauge { bottom: 22%; }
+.phud.interior .keyhints { display: none; }
+.ph-msg.cam { font-size: 1.6em; color: #fff; }

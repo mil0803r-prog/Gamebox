@@ -41,6 +41,7 @@ export class TouchControls {
           <div class="tbtn drift" data-b="drift">⟲<small>DERRAPE</small></div>
           <div class="tbtn boost" data-b="boost">🔥<small>TURBO</small></div>
         </div>`;
+      z.insertAdjacentHTML('beforeend', '<div class="tbtn cam" data-b="cam">🎥</div>');
       this.root.appendChild(z);
       const zone = { el: z, pointers: new Map(), state: {}, btns: [...z.querySelectorAll('.tbtn, .tw-center')], wheel: z.querySelector('.tw-ring') };
       if (opts.tilt) this.used[i] = true; // con inclinación, acelera solo aunque no toques la pantalla
@@ -117,6 +118,8 @@ export class TouchControls {
       if (s.brake) st.brake = 1;
       if (s.gas) st.throttle = 1;
       if (s.center && this.onCenter) { this.onCenter(); s.center = false; }
+      if (s.cam && !z.camWas) st.camPressed = true;
+      z.camWas = !!s.cam;
       if (this.autoAccel && this.used[humans === 1 ? 0 : p] && !s.brake) st.throttle = 1;
     }
   }

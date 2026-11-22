@@ -29,6 +29,8 @@ export class Gamepads {
     const prev = this.prev[slot] || {};
     st.itemPressed = st.item && !prev.item;
     st.pausePressed = st.pause && !prev.pause;
+    st.cam = b(8) > 0.5 || b(11) > 0.5; // Select/View o clic del stick derecho
+    st.camPressed = st.cam && !prev.cam;
     st.confirmPressed = b(0) > 0.5 && !prev.confirm;
     st.confirm = b(0) > 0.5;
     this.prev[slot] = st;

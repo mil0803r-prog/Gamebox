@@ -35,6 +35,7 @@ export class InputManager {
         if (kb.any(m.drift)) st.drift = true;
         if (kb.any(m.boost)) st.boost = true;
         if (kb.any(m.item)) st.item = true;
+        for (const c of m.cam) if (kb.pressedOnce.has(c)) st.camPressed = true;
       }
       st.steer = Math.max(-1, Math.min(1, st.steer));
       // mandos
@@ -48,6 +49,7 @@ export class InputManager {
         st.boost = st.boost || g.boost;
         st.item = st.item || g.item;
         st.pausePressed = st.pausePressed || g.pausePressed;
+        st.camPressed = st.camPressed || g.camPressed;
       }
       // táctil
       if (this.touch) this.touch.apply(p, st, this.humans);

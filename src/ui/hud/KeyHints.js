@@ -2,7 +2,7 @@
 const KEY_LABEL = {
   KeyW: 'W', KeyA: 'A', KeyS: 'S', KeyD: 'D', KeyE: 'E',
   ArrowUp: '↑', ArrowLeft: '←', ArrowDown: '↓', ArrowRight: '→',
-  ShiftLeft: '⇧ Shift', ShiftRight: '⇧ Der.', ControlRight: 'Ctrl Der.', Space: 'Espacio', Enter: 'Enter', Escape: 'Esc',
+  KeyC: 'C', Slash: '/', ShiftLeft: '⇧ Shift', ShiftRight: '⇧ Der.', ControlRight: 'Ctrl Der.', Space: 'Espacio', Enter: 'Enter', Escape: 'Esc',
 };
 
 const SETS = [
@@ -25,13 +25,15 @@ export class KeyHints {
         <div class="kh-group">${cap('ShiftLeft', 'wide')}<span class="kh-lbl">Derrape</span></div>
         <div class="kh-group">${cap('Space', 'wide')}<span class="kh-lbl">Turbo</span></div>
         ${items ? `<div class="kh-group">${cap('KeyE')}<span class="kh-lbl">Ítem</span></div>` : ''}
+        <div class="kh-group">${cap('KeyC')}<span class="kh-lbl">Cámara</span></div>
         <div class="kh-group">${cap('Escape')}<span class="kh-lbl">Pausa</span></div>`;
     } else {
       el.innerHTML = `
         <div class="kh-group">${cluster(s.move)}<span class="kh-lbl">Dirigir</span></div>
         <div class="kh-group">${cap(s.drift, 'wide')}<span class="kh-lbl">Derrape</span></div>
         <div class="kh-group">${cap(s.boost, 'wide')}<span class="kh-lbl">Turbo</span></div>
-        ${items ? `<div class="kh-group">${cap(s.item, s.item.length > 4 ? 'wide' : '')}<span class="kh-lbl">Ítem</span></div>` : ''}`;
+        ${items ? `<div class="kh-group">${cap(s.item, s.item.length > 4 ? 'wide' : '')}<span class="kh-lbl">Ítem</span></div>` : ''}
+        <div class="kh-group">${cap(humanIndex === 0 ? 'KeyC' : 'Slash')}<span class="kh-lbl">Cámara</span></div>`;
     }
     // en 1 jugador también valen Ctrl der. y Enter
     this.alias = humans === 1 ? { ShiftLeft: ['ShiftLeft', 'ControlRight'], Space: ['Space', 'Enter'], KeyE: ['KeyE', 'ShiftRight'] } : {};

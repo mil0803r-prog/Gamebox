@@ -42,6 +42,18 @@ export class PlayerHUD {
     el.style.setProperty('--pc', hex(racer.color));
     el.innerHTML = `
       <div class="ph-boostfx"></div>
+      <div class="ph-cockpit hidden">
+        <div class="ck-pillar l"></div><div class="ck-pillar r"></div>
+        <div class="ck-dash"></div>
+        <div class="ck-wheel"><svg viewBox="0 0 200 200">
+          <defs><radialGradient id="ckg" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#3a3d45"/><stop offset="1" stop-color="#121318"/></radialGradient></defs>
+          <path d="M100 14a86 86 0 1 0 0.01 0zM100 34a66 66 0 1 1-0.01 0z" fill="#16171c" fill-rule="evenodd" stroke="#2c2e36" stroke-width="2"/>
+          <path d="M34 108h40l14 34h24l14-34h40" fill="none" stroke="url(#ckg)" stroke-width="18" stroke-linejoin="round"/>
+          <circle cx="100" cy="112" r="24" fill="url(#ckg)" stroke="#34363e" stroke-width="2"/>
+          <rect x="93" y="15" width="14" height="16" rx="3" fill="#ffd21f"/>
+          <text x="100" y="118" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="800" font-style="italic" font-size="16" fill="#29c5ff">TD</text>
+        </svg></div>
+      </div>
       <div class="ph-tl">
         <div class="ph-pos"><b class="ph-posn">1</b><sup>º</sup><span class="ph-post">/2</span></div>
         <div class="ph-lap"><span>VUELTA</span> <b class="ph-lapn">1/3</b></div>
@@ -69,6 +81,7 @@ export class PlayerHUD {
     this.lapn = q('.ph-lapn'); this.lapbar = q('.ph-lapbar i'); this.time = q('.ph-time'); this.best = q('.ph-best');
     this.board = q('.ph-board');
     this.boostFx = q('.ph-boostfx');
+    this.cockpit = q('.ph-cockpit'); this.ckWheel = q('.ck-wheel');
     this.coinsEl = q('.ph-coins'); this.coinN = q('.ph-coinn'); this.cash = q('.ph-cash');
     this.gauge = q('.ph-gauge'); this.spd = q('.ph-spd'); this.tpct = q('.ph-tpct');
     this.spdArc = q('.g-spd'); this.turboArc = q('.g-turbo');
@@ -92,6 +105,16 @@ export class PlayerHUD {
     this.el.classList.toggle('compact', v.h < 330 || v.w < 420);
     const mm = Math.round(Math.min(v.w * 0.24, v.h * 0.32, 180));
     if (mm !== this.minimap.size) this.minimap.setSize(mm);
+  }
+
+  // cámara interior: muestra volante y tablero; oculta los resplandores del propio auto
+  setInterior(on) {
+    this.interior = on;
+    this.cockpit.classList.toggle('hidden', !on);
+    this.el.classList.toggle('interior', on);
+    // el auto propio pasa a una capa que su propia cámara no dibuja (el otro jugador sí lo ve)
+    const layer = 10 + this.racer.humanIndex;
+    this.racer.car.model.root.traverse(o => o.layers.set(on ? layer : 0));
   }
 
   flash(text, sub = '', time = 1.2, cls = '') {
@@ -171,6 +194,10 @@ export class PlayerHUD {
       this.set('board', this.board, rows, 'innerHTML');
     }
     if (this.keys && kb) this.keys.update(kb);
+    if (this.interior) {
+      const rot = Math.round((c.drifting ? c.steer * 0.6 + c.driftDir * 0.5 : c.steer) * 110);
+      if (this.last.rot !== rot) { this.last.rot = rot; this.ckWheel.style.transform = `translateX(-50%) rotate(${rot}deg)`; }
+    }
   }
 
   dispose() { this.el.remove(); }

@@ -67,7 +67,7 @@ export const BODIES = {
     top: [[0, 0.96], [0.12, 1.02], [0.25, 1.06], [0.36, 1.3], [0.55, 1.32], [0.65, 1.05], [0.8, 1.0], [1, 0.86]],
     belt: [[0, 0.93], [0.25, 1.02], [0.6, 1.0], [1, 0.86]],
     hw: [[0, 0.96], [0.08, 1], [0.92, 1], [1, 0.92]],
-    cabin: [0.27, 0.66], lights: 'round', tails: 'strip', scoop: true,
+    cabin: [0.27, 0.66], lights: 'round', tails: 'strip', scoop: true, lowerBlack: true,
   },
   // Sedán deportivo
   sedan: {
@@ -75,7 +75,7 @@ export const BODIES = {
     top: [[0, 0.96], [0.1, 1.08], [0.22, 1.12], [0.33, 1.42], [0.6, 1.45], [0.72, 1.05], [0.86, 0.95], [1, 0.72]],
     belt: [[0, 0.93], [0.22, 1.06], [0.62, 1.02], [0.72, 1.0], [1, 0.72]],
     hw: [[0, 0.93], [0.1, 1], [0.9, 1], [1, 0.86]],
-    cabin: [0.22, 0.73], lights: 'slim', tails: 'strip',
+    cabin: [0.22, 0.73], lights: 'slim', tails: 'strip', lowerBlack: true,
   },
   // Compacto deportivo (hatchback)
   hatch: {
@@ -83,7 +83,7 @@ export const BODIES = {
     top: [[0, 1.12], [0.05, 1.42], [0.15, 1.5], [0.55, 1.5], [0.7, 1.08], [0.86, 0.98], [1, 0.76]],
     belt: [[0, 1.0], [0.15, 1.02], [0.6, 0.98], [0.72, 0.97], [1, 0.76]],
     hw: [[0, 0.94], [0.08, 1], [0.92, 1], [1, 0.88]],
-    cabin: [0.05, 0.71], lights: 'slim', tails: 'quad',
+    cabin: [0.05, 0.71], lights: 'slim', tails: 'quad', lowerBlack: true,
   },
   // Mini urbano
   compact: {
@@ -91,7 +91,7 @@ export const BODIES = {
     top: [[0, 1.05], [0.05, 1.4], [0.55, 1.48], [0.72, 1.05], [0.88, 0.95], [1, 0.76]],
     belt: [[0, 0.95], [0.6, 0.95], [0.72, 0.93], [1, 0.76]],
     hw: [[0, 0.95], [0.08, 1], [0.92, 1], [1, 0.9]],
-    cabin: [0.05, 0.73], lights: 'round', tails: 'round',
+    cabin: [0.05, 0.73], lights: 'round', tails: 'round', lowerBlack: true,
   },
   // Pickup todoterreno
   truck: {

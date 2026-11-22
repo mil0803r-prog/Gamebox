@@ -87,6 +87,8 @@ export const CONFIG = {
     lookHeight: 1.25,
     // cámara lejana (opción en el menú)
     far: { distance: 6.8, distanceSpeedAdd: 2.4, height: 2.8, heightSpeedAdd: 0.5, lookAhead: 5, lookHeight: 1.1, maxStretch: 1.25 },
+    vfar: { distance: 10.5, distanceSpeedAdd: 3, height: 4.6, heightSpeedAdd: 0.8, lookAhead: 6, lookHeight: 1.0, maxStretch: 1.3 },
+    interiorFov: 74,
     fov: 66,
     fovSpeedAdd: 14,         // FOV extra a velocidad máxima
     posSmooth: 9,            // suavizado de posición (más alto = más pegada)

@@ -18,6 +18,7 @@ export function showControls(ui, back) {
         <div class="ctl-row">${k('Shift')}<span>Derrape</span></div>
         <div class="ctl-row">${k('Espacio')}<span>Turbo</span></div>
         <div class="ctl-row">${k('E')}<span>Usar ítem</span></div>
+        <div class="ctl-row">${k('C')}<span>Cambiar cámara</span></div>
       </div>
       <div class="ctl-card j2">
         <div class="ctl-title"><span class="pbadge">J2</span>Teclado</div>
@@ -28,6 +29,7 @@ export function showControls(ui, back) {
         <div class="ctl-row">${k('Ctrl')}<small>derecho</small><span>Derrape</span></div>
         <div class="ctl-row">${k('Enter')}<span>Turbo</span></div>
         <div class="ctl-row">${k('Shift')}<small>derecho</small><span>Usar ítem</span></div>
+        <div class="ctl-row">${k('/')}<span>Cambiar cámara</span></div>
       </div>
       <div class="ctl-card">
         <div class="ctl-title">🎮 Mando</div>
@@ -37,6 +39,7 @@ export function showControls(ui, back) {
         <div class="ctl-row">${k('RB')}<span>Derrape</span></div>
         <div class="ctl-row">${k('B')}<span>Turbo</span></div>
         <div class="ctl-row">${k('LB')}${k('Y')}<span>Ítem</span></div>
+        <div class="ctl-row">${k('Select')}<span>Cámara</span></div>
       </div>
       <div class="ctl-card tips">
         <div class="ctl-title">💡 Trucos</div>

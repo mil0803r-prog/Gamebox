@@ -5,7 +5,7 @@ import { TRACKS } from '../tracks/trackData.js';
 import { buildTrackScene } from '../tracks/TrackBuilder.js';
 import { CARS } from '../cars/carData.js';
 import { Race } from './Race.js';
-import { CameraRig } from './CameraRig.js';
+import { CameraRig, CAM_NAMES } from './CameraRig.js';
 import { DemoCamera } from './DemoCamera.js';
 import { Effects } from './Effects.js';
 import { AISystem } from './AI.js';
@@ -126,7 +126,7 @@ export class Game {
     } else {
       this.rigs = humans.map((r, i) => {
         const rig = new CameraRig(i);
-        rig.far = Settings.data.camera === 'far';
+        rig.mode = ['interior', 'near', 'far', 'vfar'].includes(Settings.data.camera) ? Settings.data.camera : 'near';
         rig.racer = r;
         rig.snap(r.car);
         return rig;
@@ -135,6 +135,7 @@ export class Game {
     this.rigs.forEach(r => this.scene.add(r.camera));
     this.effects.attach(this.race, this.rigs, def.theme);
     this.huds = humans.map(r => new PlayerHUD(this.hudLayer, this.track, r, { items: !!cfg.items, isTouch: this.isTouch, humans: humans.length }));
+    this.huds.forEach((h, i) => this.rigs[i] && h.setInterior(this.rigs[i].mode === 'interior'));
     this.computeViews();
     if (!cfg.demo) {
       const tilt = this.input.tilt;
@@ -223,6 +224,14 @@ export class Game {
     const race = this.race;
     race.update(dt, inputs, this.ai, this.items, this.pickups);
     this.trackScene.update(dt, race.time);
+    // cambio de cámara (tecla C / "/" , botón Select del mando o botón táctil)
+    this.rigs.forEach((rig, i) => {
+      if (inputs[i] && inputs[i].camPressed && rig.cycle) {
+        const mode = rig.cycle();
+        const h = this.huds[i];
+        if (h) { h.flash('CÁMARA ' + CAM_NAMES[mode], '', 0.8, 'cam'); h.setInterior(mode === 'interior'); }
+      }
+    });
     for (const rig of this.rigs) rig.update(dt, rig.racer.car);
     this.effects.update(dt);
     if (this.shadows && this.rigs[0]) {

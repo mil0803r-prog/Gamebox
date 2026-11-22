@@ -624,6 +624,12 @@ export function buildCarModel(def, colorHex, opts = {}) {
     },
     rearWheelLocal: [new THREE.Vector3(wx, 0.05, zOf(b.wheels[0])), new THREE.Vector3(-wx, 0.05, zOf(b.wheels[0]))],
     halfLength: halfL,
+    // ojos del piloto (cámara interior): asiento izquierdo, un poco detrás del parabrisas
+    eye: (() => {
+      const span = b.cabin[1] - b.cabin[0];
+      const u = span < 0.12 ? b.cabin[0] - 0.08 : b.cabin[0] + span * 0.42;
+      return { x: Math.min(0.34, W * 0.17), y: belt(u) + 0.27, z: zOf(u) };
+    })(),
     setBlur(on) {
       for (const [rim, bl] of blurs) { rim.visible = !on; bl.visible = on; }
     },
