@@ -50,11 +50,19 @@ Todos los valores de agarre, aceleración, giro, derrape, turbo, rebufo y cámar
 
 ```
 src/
-  config.js      valores de manejo y juego
-  game/          bucle, carrera, cámara, efectos, IA, ítems, calidad, récords
-  cars/          datos de autos, modelos low-poly, física
-  tracks/        definición de pistas, geometría, escenarios y texturas
-  ui/            menús, HUD, mini-mapa, estilos
-  audio/         motor, efectos y música (Web Audio API)
-  input/         teclado, mandos y controles táctiles
+  config.js              valores de manejo y juego
+  main.js                arranque
+  game/                  Game (bucle y carrera), Race, CameraRig, DemoCamera, Viewports,
+                         RaceFeedback, Effects, AI, Items, Quality, Storage
+  cars/                  datos de autos, modelos low-poly (perfil extruido), física
+  tracks/                datos de pistas, geometría, escenarios, decoración junto a la pista, texturas
+  ui/UIManager.js        cambio de pantallas y navegación con teclado/mando
+  ui/screens/            MainMenu, CarSelect, TrackSelect, PauseMenu, Results, Options, Records, Controls
+  ui/hud/                HUD por jugador, mini-mapa, guía de teclas
+  ui/components/         vista previa 3D del auto
+  ui/styles/             base, hud, menus, touch
+  audio/                 motor, efectos y música (Web Audio API)
+  input/                 teclado, mandos y controles táctiles
 ```
+
+La guía de teclas en pantalla (PC) se puede ocultar en **Opciones → Mostrar teclas en pantalla**.
