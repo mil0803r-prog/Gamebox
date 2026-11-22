@@ -8,6 +8,12 @@ import { CameraRig } from './CameraRig.js';
 import { InputManager } from '../input/Input.js';
 import { PlayerHUD, COUNT_TEXT } from '../ui/HUD.js';
 import { Effects } from './Effects.js';
+import { AISystem } from './AI.js';
+import { Items } from './Items.js';
+import { Quality } from './Quality.js';
+import { Settings } from './Storage.js';
+import { AudioSys } from '../audio/Audio.js';
+import { TouchControls } from '../input/Touch.js';
 
 export class Game {
   constructor(container) {
@@ -20,8 +26,13 @@ export class Game {
     this.scene = new THREE.Scene();
     this.input = new InputManager();
     this.effects = new Effects(this.scene, 2);
+    this.ai = new AISystem();
+    this.items = null;
     this.hudLayer = document.getElementById('hud');
-    this.settings = { split: 'auto', laps: CONFIG.race.laps };
+    this.hudLayer.classList.toggle('touch', this.isTouch);
+    this.settings = { split: Settings.data.split, laps: CONFIG.race.laps };
+    this.audio = new AudioSys(Settings.data);
+    this.touch = new TouchControls(document.getElementById('touch'), this.input);
     this.pixelRatio = Math.min(window.devicePixelRatio || 1, this.isTouch ? 1.5 : 2);
     this.state = 'idle';
     this.views = [];
@@ -32,6 +43,7 @@ export class Game {
     window.addEventListener('resize', () => this.resize());
     window.addEventListener('orientationchange', () => setTimeout(() => this.resize(), 200));
     this.resize();
+    this.quality = new Quality(this, Settings.data.quality);
     this.renderer.setAnimationLoop(() => this.frame());
   }
 
@@ -73,6 +85,7 @@ export class Game {
     }
     this.huds.forEach((h, i) => this.views[i] && h.layout(this.views[i]));
     this.rigs.forEach((r, i) => { const v = this.views[i]; if (v) { r.camera.aspect = v.w / v.h; r.camera.updateProjectionMatrix(); } });
+    if (this.touch && this.touch.enabled) this.touch.layout(this.views);
     this.emit('layout', this.views);
   }
 
@@ -85,6 +98,7 @@ export class Game {
     this.trackScene = buildTrackScene(this.track, this.scene, this.quality ? this.quality.level : 2);
     this.race = new Race(this.track, cfg.entries, { laps: cfg.laps, items: cfg.items });
     for (const r of this.race.racers) this.scene.add(r.car.model.root);
+    if (cfg.items) { this.items = new Items(this.scene, this.track); this.race.items = this.items; }
     const humans = this.race.racers.filter(r => r.human).sort((a, b) => a.humanIndex - b.humanIndex);
     this.input.setHumans(humans.length);
     this.rigs = humans.map((r, i) => {
@@ -98,6 +112,8 @@ export class Game {
     this.huds = humans.map(r => new PlayerHUD(this.hudLayer, this.track, r, { items: !!cfg.items }));
     this.emit('raceCreated', this.race);
     this.computeViews();
+    if (this.isTouch) this.touch.build(this.views, { autoAccel: cfg.autoAccel !== false, items: !!cfg.items });
+    this.audio.attach(this.race, this.rigs, this.splitMode() === 'cols');
     this.state = 'race';
     this.paused = false;
     this.clock.getDelta();
@@ -105,8 +121,11 @@ export class Game {
 
   endRace() {
     if (this.trackScene) this.trackScene.dispose();
+    if (this.items) { this.items.dispose(); this.items = null; }
     if (this.race) for (const r of this.race.racers) this.scene.remove(r.car.model.root);
     this.effects.detach();
+    this.touch.clear();
+    this.audio.detach();
     this.rigs.forEach(r => this.scene.remove(r.camera));
     this.huds.forEach(h => h.dispose());
     this.huds = []; this.rigs = []; this.race = null; this.trackScene = null;
@@ -116,6 +135,7 @@ export class Game {
 
   frame() {
     let dt = this.clock.getDelta();
+    if (this.state === 'race' && !this.paused && this.quality) this.quality.sample(dt);
     if (dt > 0.05) dt = 0.05;
     this.emit('frame', dt);
     const inputs = this.input.poll();
@@ -137,10 +157,19 @@ export class Game {
     this.trackScene.update(dt, race.time);
     for (const rig of this.rigs) rig.update(dt, rig.racer.car);
     this.effects.update(dt);
+    this.audio.update(dt, race);
     for (const h of this.huds) h.update(dt, race);
     this.emit('raceTick', dt);
     // eventos
     for (const e of race.events) {
+      const isHuman = e.racer && e.racer.human;
+      if (e.type === 'count') this.audio.count(e.value);
+      if (e.type === 'lap' && isHuman) this.audio.lap(e.lap === race.laps);
+      if (e.type === 'finish' && isHuman) this.audio.fanfare();
+      if (e.type === 'itemGet' && isHuman) this.audio.item('get');
+      if (e.type === 'oilHit') this.audio.item('oil');
+      if ((e.type === 'itemUse' && e.item === 'shield') || e.type === 'shieldBlock') this.audio.item('shield');
+      if (e.type === 'oilHit' && isHuman) { const h = this.huds.find(h => h.racer === e.racer); h && h.flash('¡ACEITE!', '', 0.8, 'mini lvl2'); }
       if (e.type === 'count') this.huds.forEach(h => h.flash(COUNT_TEXT[e.value], '', e.value === 0 ? 0.9 : 0.85, e.value === 0 ? 'go' : 'count'));
       if (e.type === 'lap') {
         const h = this.huds.find(h => h.racer === e.racer);
@@ -157,6 +186,13 @@ export class Game {
       const c = h.racer.car;
       if (c.ev.miniTurbo) h.flash('¡MINI-TURBO!', '', 0.7, 'mini lvl' + c.ev.miniTurbo);
     }
+  }
+
+  applySettings(s) {
+    this.settings.split = s.split;
+    this.computeViews();
+    this.quality.setMode(s.quality);
+    this.audio.applySettings();
   }
 
   // Depuración/pruebas: simula N segundos sin renderizar

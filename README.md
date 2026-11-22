@@ -1,0 +1,60 @@
+# Turbo Duelo 🏁
+
+Juego de carreras arcade 3D para 2 jugadores en pantalla dividida (o 1 jugador contra la IA).
+Corre en el navegador (PC y celular), hecho con **Vite + Three.js**, sin motores pesados ni archivos externos.
+
+## Ejecutar
+
+```bash
+npm install
+npm run dev        # abre http://localhost:5173 (también accesible desde el celular en la misma red)
+```
+
+## Publicar
+
+```bash
+npm run build      # genera la carpeta dist/
+npm run preview    # prueba local del build
+```
+
+Sube **el contenido de `dist/`** a cualquier hosting estático (Netlify, Vercel, GitHub Pages, Cloudflare Pages, Firebase Hosting, un servidor Apache/Nginx…).
+Usa rutas relativas, así que funciona en la raíz o en una subcarpeta. Tras la primera carga, un service worker guarda todo y el juego funciona **sin conexión** (requiere HTTPS, o `localhost`).
+
+## Controles
+
+| | Jugador 1 | Jugador 2 |
+|---|---|---|
+| Dirección / acelerar / frenar | W A S D | Flechas |
+| Derrape | Shift izq. | Ctrl der. |
+| Turbo | Espacio | Enter |
+| Ítem (modo ítems) | E / Q | Shift der. / Num 0 |
+| Pausa | Esc / P | Esc / P |
+
+**Mandos** (Gamepad API, hasta 2): stick/cruceta = dirección, A/RT = acelerar, X/LT = frenar, RB = derrape, B = turbo, LB/Y = ítem, Start = pausa.
+
+**Celular:** cada jugador usa su mitad de la pantalla (◀ ▶, derrape, turbo, freno). El acelerador es automático o con botón (Opciones). Multitouch real para que jueguen los dos a la vez.
+
+## Mecánicas
+
+- **Derrape:** mantén el botón de derrape girando. Llena la barra de turbo. A los 1.5 s las chispas se vuelven azules, luego naranjas y moradas: al soltar das un **mini-turbo**. Chocar con una pared o saltar cancela la carga.
+- **Turbo:** gasta la barra para un empujón fuerte (llamas, líneas de velocidad, FOV más amplio y vibración de cámara).
+- **Rebufo:** ve detrás del rival un par de segundos para cargar turbo extra (líneas de viento).
+- **Pads de turbo**, **rampas** y **atajos** (camino amarillo en el mini-mapa) en cada pista.
+- **Modo ítems** (opcional): turbo extra, mancha de aceite y escudo.
+
+## Ajustar el manejo
+
+Todos los valores de agarre, aceleración, giro, derrape, turbo, rebufo y cámara están en **`src/config.js`**.
+
+## Estructura
+
+```
+src/
+  config.js      valores de manejo y juego
+  game/          bucle, carrera, cámara, efectos, IA, ítems, calidad, récords
+  cars/          datos de autos, modelos low-poly, física
+  tracks/        definición de pistas, geometría, escenarios y texturas
+  ui/            menús, HUD, mini-mapa, estilos
+  audio/         motor, efectos y música (Web Audio API)
+  input/         teclado, mandos y controles táctiles
+```

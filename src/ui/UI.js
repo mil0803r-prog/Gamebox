@@ -45,6 +45,11 @@ export class UI {
     this.root.appendChild(this.fps);
 
     game.on('pauseToggle', () => this.togglePause());
+    game.on('layout', () => {
+      const split = game.race && game.rigs.length === 2 ? game.splitMode() : '';
+      this.topbar.classList.toggle('on-rows', split === 'rows');
+      this.topbar.classList.toggle('on-cols', split === 'cols');
+    });
     game.on('raceEvent', e => this.onRaceEvent(e));
     game.on('raceTick', () => this.onRaceTick());
     game.on('frame', dt => this.onFrame(dt));

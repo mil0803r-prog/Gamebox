@@ -172,3 +172,28 @@ h2 { margin: 6px 0 0; font-size: clamp(26px, 6vmin, 52px); font-style: italic; f
 }
 .topbar.menu { left: auto; right: max(10px, env(safe-area-inset-right)); transform: none; }
 .sw.taken { opacity: 0.25; transform: scale(0.8); }
+
+/* ---------------------------------------------------------------- TÁCTIL */
+.tzone { position: absolute; pointer-events: auto; touch-action: none; --bs: 80px; }
+.tcl { position: absolute; bottom: max(10px, env(safe-area-inset-bottom)); display: flex; gap: calc(var(--bs) * 0.18); align-items: flex-end; }
+.tcl.left { left: max(12px, env(safe-area-inset-left)); }
+.tcl.right { right: max(12px, env(safe-area-inset-right)); flex-wrap: wrap-reverse; justify-content: flex-end; max-width: calc(var(--bs) * 2.45); row-gap: calc(var(--bs) * 0.12); }
+.tbtn.drift { order: 1; } .tbtn.boost { order: 2; } .tbtn.brake, .tbtn.item, .tbtn.gas { order: 3; }
+.tbtn { width: var(--bs); height: var(--bs); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: calc(var(--bs) * 0.36); font-weight: 900; color: #fff; background: rgba(255,255,255,0.14); border: 3px solid rgba(255,255,255,0.55);
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); transition: transform 0.05s, background 0.05s; line-height: 1; text-shadow: 0 2px 2px rgba(0,0,0,0.5); }
+.tbtn small { font-size: calc(var(--bs) * 0.13); letter-spacing: 0.05em; margin-top: 2px; }
+.tbtn.steer { width: calc(var(--bs) * 1.15); height: calc(var(--bs) * 1.15); font-size: calc(var(--bs) * 0.5); }
+.tbtn.brake, .tbtn.item, .tbtn.gas { width: calc(var(--bs) * 0.78); height: calc(var(--bs) * 0.78); font-size: calc(var(--bs) * 0.28); }
+.tbtn.drift { background: rgba(0,229,255,0.22); border-color: rgba(0,229,255,0.85); }
+.tbtn.boost { background: rgba(255,138,31,0.28); border-color: rgba(255,170,60,0.95); width: calc(var(--bs) * 1.12); height: calc(var(--bs) * 1.12); }
+.tbtn.item { background: rgba(255,43,214,0.25); border-color: rgba(255,43,214,0.9); }
+.tbtn.gas { background: rgba(47,224,122,0.25); border-color: rgba(47,224,122,0.9); }
+.tbtn.on { transform: scale(0.9); background: rgba(255,255,255,0.45); }
+#hud.touch .ph-br { left: 0.6em; right: auto; top: 6.4em; bottom: auto; text-align: left; }
+#hud.touch .ph-br .ph-turbo { margin: 0.2em 0 0; width: 7em; }
+#hud.touch .ph-speed { font-size: 2em; }
+#hud.touch .ph-tag { display: none; }
+.topbar.on-rows:not(.menu) { top: 50%; transform: translate(-50%, -50%); }
+.topbar.on-cols:not(.menu) { top: 38%; transform: translate(-50%, -50%); flex-direction: column; }
+.topbar.on-rows:not(.menu) .icon-btn, .topbar.on-cols:not(.menu) .icon-btn { width: 36px; height: 36px; font-size: 16px; }

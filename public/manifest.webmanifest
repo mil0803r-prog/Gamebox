@@ -1,0 +1,14 @@
+{
+  "name": "Turbo Duelo",
+  "short_name": "Turbo Duelo",
+  "description": "Carreras arcade 3D para 2 jugadores en pantalla dividida",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0b0618",
+  "theme_color": "#0b0618",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
