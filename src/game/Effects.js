@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CONFIG } from '../config.js';
-import { blobTexture } from '../tracks/textures.js';
+import { blobTexture, sparkTexture } from '../tracks/textures.js';
 
 const D = CONFIG.drift;
 const tmpV = new THREE.Vector3();
@@ -131,7 +131,7 @@ class Snow {
     for (let i = 0; i < count; i++) { pos[i * 3] = (Math.random() - 0.5) * 60; pos[i * 3 + 1] = Math.random() * 30; pos[i * 3 + 2] = (Math.random() - 0.5) * 60; }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
-    this.mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.18, transparent: true, opacity: 0.85, depthWrite: false });
+    this.mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.11, map: sparkTexture(), transparent: true, opacity: 0.9, depthWrite: false });
     this.points = new THREE.Points(g, this.mat);
     this.points.frustumCulled = false;
     this.points.layers.set(rig.index + 1);
