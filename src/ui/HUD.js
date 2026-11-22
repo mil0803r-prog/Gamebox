@@ -90,7 +90,7 @@ export class PlayerHUD {
     if (this.opts.items) this.set('item', this.itemEl, c.item ? ITEM_ICON[c.item] : '');
     if (this.msgTimer > 0) {
       this.msgTimer -= dt;
-      if (this.msgTimer <= 0) this.msg.className = 'ph-msg';
+      if (this.msgTimer <= 0) { this.msg.className = 'ph-msg'; this.sub.textContent = ''; }
     }
     this.mapTimer -= dt;
     if (this.mapTimer <= 0) { this.mapTimer = 1 / 30; this.minimap.draw(race.racers, r.index); }

@@ -7,6 +7,7 @@ import { Race } from './Race.js';
 import { CameraRig } from './CameraRig.js';
 import { InputManager } from '../input/Input.js';
 import { PlayerHUD, COUNT_TEXT } from '../ui/HUD.js';
+import { Effects } from './Effects.js';
 
 export class Game {
   constructor(container) {
@@ -18,6 +19,7 @@ export class Game {
     container.appendChild(this.renderer.domElement);
     this.scene = new THREE.Scene();
     this.input = new InputManager();
+    this.effects = new Effects(this.scene, 2);
     this.hudLayer = document.getElementById('hud');
     this.settings = { split: 'auto', laps: CONFIG.race.laps };
     this.pixelRatio = Math.min(window.devicePixelRatio || 1, this.isTouch ? 1.5 : 2);
@@ -92,6 +94,7 @@ export class Game {
       this.scene.add(rig.camera);
       return rig;
     });
+    this.effects.attach(this.race, this.rigs, def.theme);
     this.huds = humans.map(r => new PlayerHUD(this.hudLayer, this.track, r, { items: !!cfg.items }));
     this.emit('raceCreated', this.race);
     this.computeViews();
@@ -103,6 +106,7 @@ export class Game {
   endRace() {
     if (this.trackScene) this.trackScene.dispose();
     if (this.race) for (const r of this.race.racers) this.scene.remove(r.car.model.root);
+    this.effects.detach();
     this.rigs.forEach(r => this.scene.remove(r.camera));
     this.huds.forEach(h => h.dispose());
     this.huds = []; this.rigs = []; this.race = null; this.trackScene = null;
@@ -132,6 +136,7 @@ export class Game {
     race.update(dt, inputs, this.ai, this.items);
     this.trackScene.update(dt, race.time);
     for (const rig of this.rigs) rig.update(dt, rig.racer.car);
+    this.effects.update(dt);
     for (const h of this.huds) h.update(dt, race);
     this.emit('raceTick', dt);
     // eventos
@@ -179,6 +184,7 @@ export class Game {
       r.setScissor(v.x, y, v.w, v.h);
       // el cielo sigue a la cámara
       this.trackScene.group.children[0].position.copy(rig.camera.position);
+      this.effects.setViewHeight(v.h);
       r.render(this.scene, rig.camera);
     });
   }
