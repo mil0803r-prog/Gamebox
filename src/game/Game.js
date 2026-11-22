@@ -62,16 +62,20 @@ export class Game {
   emit(ev, data) { (this.listeners[ev] || []).forEach(f => f(data)); }
 
   // ------------------------------------------------------------ pantalla
+  // pr = resolución elegida por la calidad; la carrera de fondo de los menús usa menos (va oscurecida)
   setPixelRatio(pr) {
     this.pixelRatio = pr;
+    this.applyPixelRatio();
+  }
+  applyPixelRatio() {
+    const pr = this.cfg && this.cfg.demo ? Math.min(this.pixelRatio, 0.75) : this.pixelRatio;
     this.renderer.setPixelRatio(pr);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
   resize() {
     this.W = window.innerWidth; this.H = window.innerHeight;
-    this.renderer.setPixelRatio(this.pixelRatio);
-    this.renderer.setSize(this.W, this.H);
+    if (this.renderer) this.applyPixelRatio();
     this.computeViews();
   }
 
@@ -140,6 +144,7 @@ export class Game {
       if (this.isTouch) this.touch.build(this.views, { autoAccel: cfg.autoAccel !== false, items: !!cfg.items, tilt: tilt.enabled });
       this.audio.attach(this.race, this.rigs, this.splitMode() === 'cols');
     }
+    this.applyPixelRatio();
     this.emit('raceCreated', this.race);
     this.state = 'race';
     this.paused = false;
@@ -198,7 +203,7 @@ export class Game {
   // ------------------------------------------------------------ bucle
   frame() {
     let dt = this.clock.getDelta();
-    if (this.state === 'race' && !this.paused) this.quality.sample(dt);
+    if (this.state === 'race' && !this.paused && !this.isDemo) this.quality.sample(dt);
     if (dt > 0.05) dt = 0.05;
     this.emit('frame', dt);
     const inputs = this.input.poll();

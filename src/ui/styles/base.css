@@ -1,8 +1,9 @@
 :root {
   --pink: #ff2bd6; --cyan: #00e5ff; --yellow: #ffe14d; --orange: #ff8a1f; --purple: #c04bff; --green: #2fe07a;
   --bg: #0b0618; --panel: rgba(14, 8, 34, 0.72); --panel-solid: #140a2e; --line: rgba(255, 255, 255, 0.14); --text: #fff; --muted: rgba(255,255,255,0.65);
-  --font: 'Trebuchet MS', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
-  --display: 'Arial Black', 'Segoe UI Black', 'Trebuchet MS', system-ui, sans-serif;
+  --font: 'Barlow', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --display: 'Barlow Condensed', 'Arial Narrow', 'Segoe UI', system-ui, sans-serif;
+  --accent: #29c5ff;
   --radius: 16px;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }

@@ -88,7 +88,7 @@ export class UIManager {
       if (opts.demo && !this.game.race) this.game.startDemo();
     }
     this.navhelp.classList.toggle('hidden', !node || this.game.isTouch || opts.noNav);
-    this.moneyEl.classList.toggle('hidden', !node || !!opts.overlay && !opts.showMoney);
+    this.moneyEl.classList.toggle('hidden', !node || opts.noMoney || !!opts.overlay && !opts.showMoney);
     this.updateMoney();
     this.navhelp.querySelector('.nh-back').classList.toggle('hidden', !opts.back);
     this.game.input.kb.captureGameKeys = !node;

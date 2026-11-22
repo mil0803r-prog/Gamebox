@@ -316,3 +316,113 @@ h2 { margin: 0; font-family: var(--display); font-size: clamp(28px, 6.5vmin, 58p
   .lot-grid { max-height: none; overflow: visible; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .sr-specs { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ================================================================ MENÚ PRINCIPAL estilo consola */
+.screen.mm { display: grid; grid-template-columns: minmax(320px, 520px) 1fr minmax(240px, 300px); grid-template-rows: auto 1fr auto;
+  grid-template-areas: "top top top" "nav . car" "prompts prompts prompts"; align-items: stretch; gap: 0 24px;
+  padding: max(18px, env(safe-area-inset-top)) max(28px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(28px, env(safe-area-inset-left));
+  background:
+    linear-gradient(90deg, rgba(4,6,12,0.92) 0%, rgba(4,6,12,0.78) 30%, rgba(4,6,12,0.25) 62%, rgba(4,6,12,0.55) 100%),
+    linear-gradient(0deg, rgba(4,6,12,0.85) 0%, transparent 22%, transparent 80%, rgba(4,6,12,0.7) 100%);
+  font-family: var(--font); }
+.screen.mm::before { display: none; }
+
+/* barra superior */
+.mm-top { grid-area: top; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-right: 110px; min-height: 56px; }
+.mm-brand { display: flex; align-items: baseline; gap: 8px; font-family: var(--display); font-style: italic; line-height: 1; letter-spacing: 0.02em; }
+.mm-brand b { font-size: clamp(30px, 4.2vw, 52px); font-weight: 800; color: #fff; }
+.mm-brand i { font-size: clamp(30px, 4.2vw, 52px); font-weight: 800; color: var(--accent); }
+.mm-status { display: flex; align-items: center; gap: 22px; }
+.mm-stat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.05; }
+.mm-stat small, .mm-car small { font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+.mm-stat b { font-family: var(--display); font-weight: 700; font-size: 22px; font-variant-numeric: tabular-nums; }
+.mm-stat b span { color: rgba(255,255,255,0.5); font-size: 0.75em; }
+.mm-money { color: #ffd84a; }
+.mm-clock { font-family: var(--display); font-weight: 600; font-size: 22px; color: rgba(255,255,255,0.85); padding-left: 18px; border-left: 1px solid rgba(255,255,255,0.18); font-variant-numeric: tabular-nums; }
+.mm-profile { display: flex; align-items: center; gap: 10px; padding-right: 18px; border-right: 1px solid rgba(255,255,255,0.18); }
+.mm-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 800; font-size: 20px;
+  background: linear-gradient(135deg, var(--accent), #0a5cff); box-shadow: 0 0 0 2px rgba(255,255,255,0.85); }
+.mm-pinfo { display: flex; flex-direction: column; line-height: 1.1; min-width: 92px; }
+.mm-pinfo b { font-weight: 700; font-size: 15px; }
+.mm-pinfo small { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 600; }
+.mm-xp { display: block; height: 3px; margin-top: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); overflow: hidden; }
+.mm-xp i { display: block; height: 100%; background: var(--accent); }
+
+/* lista de opciones */
+.mm-nav { grid-area: nav; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 12px 0; }
+.mm-item { position: relative; display: grid; grid-template-columns: 44px 1fr 24px; align-items: center; gap: 14px; width: 100%; padding: 12px 18px 12px 16px;
+  border: 0; background: transparent; color: rgba(255,255,255,0.78); font-family: var(--font); text-align: left; cursor: pointer;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 18px) 100%, 0 100%); transition: color 0.15s, background 0.18s, transform 0.18s; touch-action: manipulation; }
+.mm-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); transform: scaleY(0); transition: transform 0.18s; }
+.mm-ico { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; opacity: 0.85; }
+.mm-ico svg { width: 28px; height: 28px; }
+.mm-txt { display: flex; flex-direction: column; line-height: 1.05; }
+.mm-txt b { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 2.6vw, 34px); text-transform: uppercase; letter-spacing: 0.04em; }
+.mm-txt small { font-size: 14px; font-weight: 500; max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.2s, opacity 0.2s, margin 0.2s; }
+.mm-arrow { font-size: 28px; opacity: 0; transform: translateX(-6px); transition: opacity 0.15s, transform 0.15s; }
+.mm-item:hover, .mm-item:focus-visible, .mm-item:focus { outline: none; color: #0a0d14;
+  background: linear-gradient(90deg, #ffffff 0%, #eef3f8 70%, rgba(238,243,248,0.85) 100%); transform: translateX(6px); }
+.mm-item:hover::before, .mm-item:focus::before { transform: scaleY(1); }
+.mm-item:hover .mm-txt small, .mm-item:focus .mm-txt small { max-height: 20px; opacity: 0.75; margin-top: 3px; }
+.mm-item:hover .mm-arrow, .mm-item:focus .mm-arrow { opacity: 1; transform: none; }
+.mm-item:active { transform: translateX(6px) scale(0.985); }
+
+/* tarjeta "tu auto" */
+.mm-car { grid-area: car; align-self: end; margin-bottom: 18px; display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 16px; cursor: pointer;
+  background: linear-gradient(180deg, rgba(14,18,30,0.72), rgba(8,10,18,0.88)); border: 1px solid rgba(255,255,255,0.12); border-top: 3px solid var(--accent);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: border-color 0.15s, transform 0.15s; }
+.mm-car:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.3); }
+.mm-car-head { display: flex; justify-content: space-between; align-items: center; }
+.mm-cls { font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 8px; background: var(--cc); color: #000; }
+.mm-car-img { width: 100%; aspect-ratio: 9 / 5; object-fit: contain; opacity: 0; transition: opacity 0.4s; }
+.mm-car-img.ok { opacity: 1; }
+.mm-car-name { display: flex; flex-direction: column; line-height: 1; }
+.mm-car-name b { font-family: var(--display); font-style: italic; font-weight: 800; font-size: 30px; }
+.mm-car-specs { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(255,255,255,0.12); padding-top: 8px; margin-top: 4px; }
+.mm-car-specs div { display: flex; flex-direction: column; }
+.mm-car-specs b { font-family: var(--display); font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; }
+
+/* barra de controles inferior */
+.mm-prompts { grid-area: prompts; display: flex; gap: 26px; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.8); }
+.mm-prompts kbd { background: rgba(255,255,255,0.92); color: #0a0d14; border: 0; box-shadow: none; border-radius: 4px; font-family: var(--font); }
+.mm-hint { margin-left: auto; opacity: 0.7; font-weight: 500; }
+
+/* pantallas medianas y celular horizontal */
+@media (max-width: 900px), (max-height: 560px) {
+  .screen.mm { grid-template-columns: minmax(260px, 1fr) minmax(200px, 250px); grid-template-areas: "top top" "nav car" "prompts prompts"; gap: 0 14px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+  .mm-item { padding: 7px 14px 7px 12px; grid-template-columns: 32px 1fr 20px; }
+  .mm-ico svg { width: 22px; height: 22px; }
+  .mm-txt b { font-size: 22px; }
+  .mm-txt small { display: none; }
+  .mm-clock, .mm-hint { display: none; }
+  .mm-car-name b { font-size: 22px; }
+  .mm-top { min-height: 44px; }
+  .mm-pinfo { min-width: 0; }
+}
+@media (orientation: portrait) {
+  .screen.mm { grid-template-columns: 1fr; grid-template-areas: "top" "nav" "car" "prompts"; }
+  .mm-top { flex-direction: column; align-items: flex-start; padding-right: 100px; }
+  .mm-status { gap: 12px; flex-wrap: wrap; }
+  .mm-car { align-self: stretch; }
+}
+/* celular horizontal (poca altura): todo más compacto para que quepa sin desplazar */
+@media (max-height: 500px) {
+  .screen.mm { padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(6px, env(safe-area-inset-bottom)); }
+  .mm-top { min-height: 36px; padding-right: 96px; }
+  .mm-brand b, .mm-brand i { font-size: 24px; }
+  .mm-avatar { width: 28px; height: 28px; font-size: 15px; }
+  .mm-pinfo b { font-size: 13px; } .mm-pinfo small { font-size: 11px; }
+  .mm-stat b { font-size: 17px; } .mm-stat small { font-size: 9px; }
+  .mm-status { gap: 12px; }
+  .mm-nav { gap: 1px; padding: 4px 0; }
+  .mm-item { padding: 4px 12px 4px 10px; grid-template-columns: 26px 1fr 16px; gap: 10px; }
+  .mm-ico { width: 24px; height: 24px; } .mm-ico svg { width: 19px; height: 19px; }
+  .mm-txt b { font-size: 19px; }
+  .mm-arrow { font-size: 20px; }
+  .mm-car { margin-bottom: 4px; padding: 8px 10px 10px; gap: 2px; align-self: center; }
+  .mm-car-img { max-height: 24vh; }
+  .mm-car-name b { font-size: 18px; }
+  .mm-car-specs b { font-size: 15px; }
+  .mm-car small { font-size: 9px; }
+  .mm-prompts { padding-top: 4px; font-size: 12px; }
+}
