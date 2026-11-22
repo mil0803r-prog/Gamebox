@@ -90,6 +90,7 @@
 .ph-tag { position: absolute; right: 0.6em; bottom: 9.2em; font-size: 0.7em; padding: 0.2em 0.6em; border-radius: 0.5em; background: var(--pc); color: #000; text-shadow: none; opacity: 0.9; }
 
 /* --- modo táctil: velocímetro arriba a la izquierda, debajo de los tiempos */
-#hud.touch .ph-gauge { position: relative; right: auto; bottom: auto; width: 5.8em; height: 5.8em; }
+#hud.touch .ph-gauge { position: relative; right: auto; bottom: auto; width: 5.2em; height: 5.2em; }
+#hud.touch .phud.compact .g-label { display: none; }
 #hud.touch .ph-tr { flex-direction: column; align-items: flex-end; }
 #hud.touch .ph-tag { display: none; }

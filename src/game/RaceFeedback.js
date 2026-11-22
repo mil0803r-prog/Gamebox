@@ -10,6 +10,7 @@ export function handleRaceEvents(game, race) {
     switch (e.type) {
       case 'count':
         audio.count(e.value);
+        if (e.value === 0 && game.input.tilt.enabled) game.input.tilt.calibrate(); // centro del volante al arrancar
         game.huds.forEach(x => x.flash(COUNT_TEXT[e.value], '', e.value === 0 ? 0.9 : 0.85, e.value === 0 ? 'go' : 'count'));
         break;
       case 'lap':

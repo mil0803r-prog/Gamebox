@@ -16,3 +16,26 @@
 .tbtn.item { background: rgba(255,43,214,0.25); border-color: rgba(255,43,214,0.9); }
 .tbtn.gas { background: rgba(47,224,122,0.25); border-color: rgba(47,224,122,0.9); }
 .tbtn.on { transform: scale(0.9); background: rgba(255,255,255,0.45); }
+
+/* modo inclinación: derrape/freno a la izquierda, turbo a la derecha, volante al centro */
+.tzone.tilt .tcl.left { flex-direction: row-reverse; align-items: flex-end; }
+.tzone.tilt .tbtn.drift { width: calc(var(--bs) * 1.12); height: calc(var(--bs) * 1.12); }
+.twheel { position: absolute; left: 50%; bottom: max(10px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.tw-ring { width: calc(var(--bs) * 0.62); height: calc(var(--bs) * 0.62); opacity: 0.8; border-radius: 50%; border: 5px solid rgba(255,255,255,0.75); position: relative;
+  box-shadow: 0 0 12px rgba(0,229,255,0.45), inset 0 0 0 3px rgba(0,0,0,0.3); transition: transform 0.05s linear; }
+.tw-ring::before { content: ''; position: absolute; left: 6%; right: 6%; top: 50%; height: 5px; margin-top: -2px; background: rgba(255,255,255,0.75); border-radius: 3px; }
+.tw-ring i { position: absolute; left: 50%; top: -5px; width: 8px; height: 14px; margin-left: -4px; border-radius: 3px; background: var(--yellow); }
+.tw-center { font-family: inherit; font-weight: 900; font-size: 11px; letter-spacing: 0.1em; color: #fff; padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.5); background: rgba(10,5,28,0.6); }
+.twheel.nosensor .tw-ring { opacity: 0.35; }
+.twheel.nosensor .tw-center::after { content: ' · SIN SENSOR'; color: #ff8a8a; }
+
+/* aviso: girar el celular */
+.rotate-hint { position: fixed; inset: 0; z-index: 50; pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  background: rgba(8, 3, 22, 0.94); text-align: center; padding: 24px; }
+.rotate-hint b { font-size: 26px; font-style: italic; }
+.rotate-hint span { color: var(--muted); font-weight: 700; }
+.rotate-hint .btn { margin-top: 10px; }
+.rh-phone { width: 70px; height: 120px; border: 5px solid #fff; border-radius: 14px; position: relative; animation: rotPhone 2s ease-in-out infinite; }
+.rh-phone i { position: absolute; left: 50%; bottom: 6px; width: 16px; height: 4px; margin-left: -8px; border-radius: 2px; background: #fff; }
+@keyframes rotPhone { 0%, 20% { transform: rotate(0); } 50%, 80% { transform: rotate(-90deg); border-color: var(--cyan); } 100% { transform: rotate(0); } }
+.tilt-note { font-size: 13px; font-weight: 700; color: var(--cyan); padding: 4px 0; }

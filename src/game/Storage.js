@@ -10,7 +10,7 @@ function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); 
 
 export const DEFAULT_SETTINGS = {
   laps: 3, items: false, difficulty: 1, rivals1p: 3, rivals2p: 0,
-  autoAccel: true, showKeys: true, split: 'auto', quality: 'auto', music: true, sfx: true, muted: false, showFps: false,
+  autoAccel: true, showKeys: true, steerMode: 'buttons', tiltSens: 'medium', tiltInvert: false, orientation: 'landscape', split: 'auto', quality: 'auto', music: true, sfx: true, muted: false, showFps: false,
   p1: { car: 'rayo', color: -1 }, p2: { car: 'pulga', color: -1 }, track: 0,
 };
 

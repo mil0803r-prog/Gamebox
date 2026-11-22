@@ -119,7 +119,11 @@ export class Game {
     this.huds = humans.map(r => new PlayerHUD(this.hudLayer, this.track, r, { items: !!cfg.items, isTouch: this.isTouch, humans: humans.length }));
     this.computeViews();
     if (!cfg.demo) {
-      if (this.isTouch) this.touch.build(this.views, { autoAccel: cfg.autoAccel !== false, items: !!cfg.items });
+      const tilt = this.input.tilt;
+      tilt.enabled = this.isTouch && cfg.steerMode === 'tilt' && humans.length === 1;
+      tilt.sens = Settings.data.tiltSens; tilt.invert = Settings.data.tiltInvert;
+      if (tilt.enabled) { tilt.listen(); tilt.calibrate(); this.touch.onCenter = () => tilt.calibrate(); }
+      if (this.isTouch) this.touch.build(this.views, { autoAccel: cfg.autoAccel !== false, items: !!cfg.items, tilt: tilt.enabled });
       this.audio.attach(this.race, this.rigs, this.splitMode() === 'cols');
     }
     this.emit('raceCreated', this.race);
@@ -144,6 +148,7 @@ export class Game {
     if (this.race) for (const r of this.race.racers) this.scene.remove(r.car.model.root);
     this.effects.detach();
     this.touch.clear();
+    this.input.tilt.enabled = false;
     this.audio.detach();
     this.rigs.forEach(r => this.scene.remove(r.camera));
     this.huds.forEach(h => h.dispose());

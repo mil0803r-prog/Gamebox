@@ -32,7 +32,9 @@ Usa rutas relativas, así que funciona en la raíz o en una subcarpeta. Tras la 
 
 **Mandos** (Gamepad API, hasta 2): stick/cruceta = dirección, A/RT = acelerar, X/LT = frenar, RB = derrape, B = turbo, LB/Y = ítem, Start = pausa.
 
-**Celular:** cada jugador usa su mitad de la pantalla (◀ ▶, derrape, turbo, freno). El acelerador es automático o con botón (Opciones). Multitouch real para que jueguen los dos a la vez.
+**Celular (pensado para horizontal):** si el celular está en vertical aparece un aviso para girarlo, y al empezar la carrera se intenta pantalla completa en horizontal. Cada jugador usa su mitad de la pantalla (◀ ▶, derrape, turbo, freno). El acelerador es automático o con botón (Opciones). Multitouch real para que jueguen los dos a la vez.
+
+**Inclinar para conducir (1 jugador):** en Opciones → Dirección en celular → *Inclinar*. Giras el celular como un volante; el botón CENTRAR recalibra. Hay sensibilidad (baja/media/alta) e inversión. Requiere HTTPS (tu sitio publicado) y un celular con giroscopio; en iPhone pide permiso.
 
 ## Mecánicas
 

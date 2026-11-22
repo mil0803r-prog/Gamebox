@@ -18,8 +18,18 @@ export class TouchControls {
     this.autoAccel = opts.autoAccel;
     views.forEach((v, i) => {
       const z = document.createElement('div');
-      z.className = 'tzone p' + (i + 1) + (views.length > 1 ? ' split' : '');
-      z.innerHTML = `
+      z.className = 'tzone p' + (i + 1) + (views.length > 1 ? ' split' : '') + (opts.tilt ? ' tilt' : '');
+      z.innerHTML = opts.tilt ? `
+        <div class="tcl left">
+          <div class="tbtn brake" data-b="brake">▼<small>FRENO</small></div>
+          <div class="tbtn drift" data-b="drift">⟲<small>DERRAPE</small></div>
+        </div>
+        <div class="twheel"><div class="tw-ring"><i></i></div><button class="tw-center" data-b="center">CENTRAR</button></div>
+        <div class="tcl right">
+          ${opts.autoAccel ? '' : '<div class="tbtn gas" data-b="gas">▲<small>ACEL.</small></div>'}
+          ${opts.items ? '<div class="tbtn item" data-b="item">★<small>ÍTEM</small></div>' : ''}
+          <div class="tbtn boost" data-b="boost">🔥<small>TURBO</small></div>
+        </div>` : `
         <div class="tcl left">
           <div class="tbtn steer" data-b="left">◀</div>
           <div class="tbtn steer" data-b="right">▶</div>
@@ -32,7 +42,8 @@ export class TouchControls {
           <div class="tbtn boost" data-b="boost">🔥<small>TURBO</small></div>
         </div>`;
       this.root.appendChild(z);
-      const zone = { el: z, pointers: new Map(), state: {}, btns: [...z.querySelectorAll('.tbtn')] };
+      const zone = { el: z, pointers: new Map(), state: {}, btns: [...z.querySelectorAll('.tbtn, .tw-center')], wheel: z.querySelector('.tw-ring') };
+      if (opts.tilt) this.used[i] = true; // con inclinación, acelera solo aunque no toques la pantalla
       this.zones.push(zone);
       this.bind(zone, i);
     });
@@ -105,8 +116,17 @@ export class TouchControls {
       if (s.item) st.item = true;
       if (s.brake) st.brake = 1;
       if (s.gas) st.throttle = 1;
+      if (s.center && this.onCenter) { this.onCenter(); s.center = false; }
       if (this.autoAccel && this.used[humans === 1 ? 0 : p] && !s.brake) st.throttle = 1;
     }
+  }
+
+  // muestra el giro actual en el volante (modo inclinación)
+  showSteer(v, ok) {
+    const z = this.zones[0];
+    if (!z || !z.wheel) return;
+    z.wheel.style.transform = `rotate(${(v * 90).toFixed(1)}deg)`;
+    z.wheel.parentElement.classList.toggle('nosensor', !ok);
   }
 
   clear() {

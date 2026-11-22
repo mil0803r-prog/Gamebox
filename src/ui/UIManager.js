@@ -36,7 +36,18 @@ export class UIManager {
     this.fps = el(`<div class="fps hidden"></div>`);
     this.navhelp = el(`<div class="navhelp hidden"><span><kbd>↑</kbd><kbd>↓</kbd> Mover</span><span><kbd>Enter</kbd> Elegir</span><span class="nh-back"><kbd>Esc</kbd> Atrás</span></div>`);
     this.moneyEl = el(`<div class="money-pill hidden"><span class="mp-ico">$</span><b></b></div>`);
-    this.root.append(this.sema, this.fps, this.navhelp, this.moneyEl);
+    // aviso para girar el celular (el juego está pensado para horizontal)
+    this.rotateEl = el(`<div class="rotate-hint hidden">
+      <div class="rh-phone"><i></i></div>
+      <b>Gira tu celular</b>
+      <span>Turbo Duelo se juega en horizontal</span>
+      <button class="btn sm" data-a="portrait">Seguir en vertical</button>
+    </div>`);
+    this.rotateEl.querySelector('[data-a=portrait]').onclick = () => { this.portraitOk = true; this.checkOrientation(); };
+    this.root.append(this.sema, this.fps, this.navhelp, this.moneyEl, this.rotateEl);
+    window.addEventListener('resize', () => this.checkOrientation());
+    window.addEventListener('orientationchange', () => setTimeout(() => this.checkOrientation(), 250));
+    this.checkOrientation();
     this.updateMoney();
 
     game.on('pauseToggle', () => this.togglePause());
@@ -148,6 +159,24 @@ export class UIManager {
     this.fps.classList.toggle('hidden', !this.s.showFps);
   }
 
+  checkOrientation() {
+    const portrait = window.innerHeight > window.innerWidth;
+    const show = this.game.isTouch && portrait && this.s.orientation === 'landscape' && !this.portraitOk;
+    this.rotateEl.classList.toggle('hidden', !show);
+  }
+
+  // en celular: pantalla completa + bloquear horizontal (si el navegador lo permite)
+  enterLandscape() {
+    if (!this.game.isTouch || this.s.orientation !== 'landscape') return;
+    const de = document.documentElement;
+    const lock = () => screen.orientation?.lock?.('landscape').catch(() => {});
+    if (document.fullscreenElement || document.webkitFullscreenElement) { lock(); return; }
+    try {
+      const p = (de.requestFullscreen || de.webkitRequestFullscreen)?.call(de, { navigationUI: 'hide' });
+      if (p && p.then) p.then(lock).catch(() => {});
+    } catch { /* sin pantalla completa */ }
+  }
+
   updateMoney(anim) {
     this.moneyEl.querySelector('b').textContent = money(Profile.data.money).slice(1);
     if (anim) { this.moneyEl.classList.remove('bump'); void this.moneyEl.offsetWidth; this.moneyEl.classList.add('bump'); }
@@ -204,10 +233,13 @@ export class UIManager {
   }
 
   startRace() {
-    this.screen(null);
     const s = this.s;
+    // se llama desde un toque: pedir el sensor (iPhone) y horizontal aquí mismo
+    if (this.game.isTouch && s.steerMode === 'tilt' && this.mode === 1) this.game.input.tilt.request();
+    this.enterLandscape();
+    this.screen(null);
     this.game.settings.split = s.split;
-    this.game.startRace({ trackId: TRACKS[s.track].id, laps: s.laps, items: s.items, entries: this.buildEntries(), autoAccel: s.autoAccel });
+    this.game.startRace({ trackId: TRACKS[s.track].id, laps: s.laps, items: s.items, entries: this.buildEntries(), autoAccel: s.autoAccel, steerMode: s.steerMode });
     this.showPauseButton(true);
     this.resultsShown = false;
     this.game.audio?.music(TRACKS[s.track].theme);

@@ -1,5 +1,6 @@
 import { Keyboard, KEYMAPS } from './Keyboard.js';
 import { Gamepads } from './Gamepads.js';
+import { Tilt } from './Tilt.js';
 
 // Combina teclado, mandos y táctil en un estado por jugador
 export class InputManager {
@@ -9,12 +10,18 @@ export class InputManager {
     this.touch = null; // se asigna desde TouchControls
     this.humans = 1;
     this.prevItem = [false, false];
+    this.tilt = new Tilt();
+    this.lastPoll = performance.now();
   }
 
   setHumans(n) { this.humans = n; }
 
   poll() {
     const out = [];
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - this.lastPoll) / 1000);
+    this.lastPoll = now;
+    const tiltSteer = this.tilt.enabled ? this.tilt.update(dt) : 0;
     const pads = this.pads.list();
     for (let p = 0; p < this.humans; p++) {
       const st = { steer: 0, throttle: 0, brake: 0, drift: false, boost: false, item: false, itemPressed: false, pausePressed: false };
@@ -44,12 +51,15 @@ export class InputManager {
       }
       // táctil
       if (this.touch) this.touch.apply(p, st, this.humans);
+      // inclinación del celular (solo 1 jugador): manda si no se usa otra dirección
+      if (this.tilt.enabled && p === 0 && this.humans === 1 && Math.abs(st.steer) < 0.05) st.steer = tiltSteer;
       st.itemPressed = st.item && !this.prevItem[p];
       this.prevItem[p] = st.item;
       out.push(st);
     }
     if (this.kb.consume('Escape') || this.kb.consume('KeyP')) out.pausePressed = true;
     for (const s of out) if (s.pausePressed) out.pausePressed = true;
+    if (this.tilt.enabled && this.touch) this.touch.showSteer(tiltSteer, this.tilt.receiving);
     this.kb.endFrame();
     return out;
   }
