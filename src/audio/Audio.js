@@ -1,5 +1,6 @@
 import { Music } from './Music.js';
-import { CONFIG } from '../config.js';
+import { ENGINE_PROCESSOR } from './engineWorklet.js';
+import { EngineVoice } from './Engine.js';
 
 // Todo el sonido se genera con Web Audio API (sin archivos)
 export class AudioSys {
@@ -55,6 +56,7 @@ export class AudioSys {
     this.paused = p;
     this.applySettings();
     for (const e of this.engines) e.out.gain.setTargetAtTime(p ? 0 : 1, this.ctx.currentTime, 0.05);
+    if (this.rival) this.rival.out.gain.setTargetAtTime(p ? 0 : 1, this.ctx.currentTime, 0.05);
   }
 
   music(name) {
@@ -63,39 +65,61 @@ export class AudioSys {
   }
 
   // ---------------------------------------------------------------- motores
-  attach(race, rigs, cols) {
+  // carga el procesador del motor (AudioWorklet) desde texto; si falla se usan osciladores
+  loadWorklet() {
+    if (this.workletPromise) return this.workletPromise;
+    this.workletPromise = (async () => {
+      try {
+        if (!this.ctx.audioWorklet) return false;
+        const url = URL.createObjectURL(new Blob([ENGINE_PROCESSOR], { type: 'application/javascript' }));
+        await this.ctx.audioWorklet.addModule(url);
+        this.workletOk = true;
+      } catch { this.workletOk = false; }
+      return this.workletOk;
+    })();
+    return this.workletPromise;
+  }
+
+  async attach(race, rigs, cols) {
     this.detach();
     this.pendingRace = race; this.pendingRigs = rigs; this.pendingCols = cols;
     if (!this.ctx) return;
+    await this.loadWorklet();
+    if (this.pendingRace !== race) return; // la carrera cambió mientras cargaba
     const ctx = this.ctx;
     rigs.forEach((rig, i) => {
       const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
       if (pan) pan.pan.value = rigs.length === 1 ? 0 : (i === 0 ? -1 : 1) * (cols ? 0.6 : 0.25);
       const out = ctx.createGain(); out.gain.value = 1;
       if (pan) { out.connect(pan); pan.connect(this.sfxGain); } else out.connect(this.sfxGain);
-      const vol = rigs.length === 1 ? 0.22 : 0.16;
-      // motor: dos osciladores + filtro
-      const o1 = ctx.createOscillator(); o1.type = 'sawtooth';
-      const o2 = ctx.createOscillator(); o2.type = 'square';
-      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 3;
-      const g = ctx.createGain(); g.gain.value = 0;
-      const g2 = ctx.createGain(); g2.gain.value = 0.5;
-      o1.connect(f); o2.connect(g2); g2.connect(f); f.connect(g); g.connect(out);
-      o1.start(); o2.start();
-      // derrape (ruido)
-      const dn = this.loopNoise(), df = ctx.createBiquadFilter(), dg = ctx.createGain();
-      df.type = 'bandpass'; df.frequency.value = 1400; df.Q.value = 1.4; dg.gain.value = 0;
-      dn.connect(df); df.connect(dg); dg.connect(out);
-      // turbo (ruido grave)
+      const engine = new EngineVoice(ctx, out, rig.racer.carDef, this.workletOk, this.noiseBuf);
+      // chirrido de llantas: ruido con filtro resonante (más tonal que antes)
+      const dn = this.loopNoise(), df = ctx.createBiquadFilter(), df2 = ctx.createBiquadFilter(), dg = ctx.createGain();
+      df.type = 'bandpass'; df.frequency.value = 1100; df.Q.value = 7;
+      df2.type = 'bandpass'; df2.frequency.value = 2300; df2.Q.value = 5;
+      dg.gain.value = 0;
+      dn.connect(df); dn.connect(df2); df.connect(dg); df2.connect(dg); dg.connect(out);
+      // turbo/nitro: soplido grave
       const bn = this.loopNoise(), bf = ctx.createBiquadFilter(), bg = ctx.createGain();
       bf.type = 'lowpass'; bf.frequency.value = 500; bg.gain.value = 0;
       bn.connect(bf); bf.connect(bg); bg.connect(out);
-      // viento (rebufo)
+      // viento: sube con la velocidad (y con el rebufo)
       const wn = this.loopNoise(), wf = ctx.createBiquadFilter(), wg = ctx.createGain();
-      wf.type = 'highpass'; wf.frequency.value = 2500; wg.gain.value = 0;
+      wf.type = 'bandpass'; wf.frequency.value = 900; wf.Q.value = 0.5; wg.gain.value = 0;
       wn.connect(wf); wf.connect(wg); wg.connect(out);
-      this.engines.push({ rig, o1, o2, f, g, vol, out, pan, dn, df, dg, bn, bf, bg, wn, wf, wg, srcs: [o1, o2, dn, bn, wn] });
+      // rodadura: ruido grave del asfalto
+      const rn = this.loopNoise(), rf = ctx.createBiquadFilter(), rg = ctx.createGain();
+      rf.type = 'lowpass'; rf.frequency.value = 180; rg.gain.value = 0;
+      rn.connect(rf); rf.connect(rg); rg.connect(out);
+      this.engines.push({ rig, engine, out, pan, dn, df, df2, dg, bn, bf, bg, wn, wf, wg, rg, srcs: [dn, bn, wn, rn] });
     });
+    // 1 jugador: el rival más cercano también suena (con efecto Doppler)
+    if (rigs.length === 1 && race.racers.length > 1) {
+      const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      const out = ctx.createGain();
+      if (pan) { out.connect(pan); pan.connect(this.sfxGain); } else out.connect(this.sfxGain);
+      this.rival = { pan, out, voice: null, racer: null, pick: 0 };
+    }
   }
 
   loopNoise() {
@@ -107,38 +131,38 @@ export class AudioSys {
 
   detach() {
     for (const e of this.engines) {
+      e.engine.stop();
       e.srcs.forEach(s => { try { s.stop(); } catch { /* ya detenido */ } });
       e.out.disconnect();
     }
     this.engines = [];
+    if (this.rival) { if (this.rival.voice) this.rival.voice.stop(); this.rival.out.disconnect(); this.rival = null; }
     this.pendingRace = null;
   }
 
-  update(dt, race) {
+  update(dt, race, inputs) {
     if (!this.ctx || this.paused) return;
     const t = this.ctx.currentTime;
-    const vmax = CONFIG.handling.maxSpeed;
+    const racing = race.state !== 'countdown';
     for (const e of this.engines) {
-      const c = e.rig.racer.car;
-      const v = Math.abs(c.vf);
-      // marchas simuladas
-      const ratio = Math.min(1.4, v / vmax);
-      const gears = [0, 0.18, 0.36, 0.56, 0.78, 1.0, 2];
-      let g = 0; while (ratio > gears[g + 1]) g++;
-      const frac = (ratio - gears[g]) / (gears[g + 1] - gears[g]);
-      const rpm = 0.3 + Math.min(1.2, frac) * 0.7;
-      const base = 45 + rpm * 110 + g * 6 + (c.airborne ? 25 : 0);
-      e.o1.frequency.setTargetAtTime(base, t, 0.04);
-      e.o2.frequency.setTargetAtTime(base * 0.5, t, 0.04);
-      e.f.frequency.setTargetAtTime(400 + rpm * 1400 + (c.boosting ? 900 : 0), t, 0.05);
-      const load = race.state === 'countdown' ? 0.55 : 0.7 + 0.3 * Math.min(1, v / 20);
-      e.g.gain.setTargetAtTime(e.vol * load, t, 0.05);
-      const drifting = c.drifting && !c.airborne;
-      e.dg.gain.setTargetAtTime(drifting ? 0.11 : (Math.abs(c.vr) > 6 && !c.airborne ? 0.05 : 0), t, 0.04);
-      e.df.frequency.setTargetAtTime(1200 + (c.driftCharge ? c.driftLevel : 0) * 450, t, 0.05);
-      e.bg.gain.setTargetAtTime(c.boosting ? 0.22 : 0, t, 0.06);
+      const r = e.rig.racer, c = r.car;
+      // en la cuenta regresiva el auto no se mueve, pero el motor responde al acelerador (acelerones)
+      const inp = inputs && inputs[r.humanIndex];
+      const throttle = racing ? (r.finished ? 0.6 : c.throttleIn || 0) : (inp ? inp.throttle : 0);
+      e.engine.update(dt, c, throttle, racing);
+      const v = c.speed;
+      const ground = !c.airborne;
+      const slide = ground ? Math.min(1, Math.max(0, (Math.abs(c.vr) - 3) / 10)) : 0;
+      const sq = ground && v > 5 ? (c.drifting ? 0.12 : 0) + slide * 0.1 : 0;
+      e.dg.gain.setTargetAtTime(sq, t, 0.04);
+      const lvl = c.driftCharge ? c.driftLevel : 0;
+      e.df.frequency.setTargetAtTime(1000 + lvl * 160 + Math.sin(t * 13) * 40, t, 0.05);
+      e.bg.gain.setTargetAtTime(c.boosting ? 0.2 : 0, t, 0.06);
       e.bf.frequency.setTargetAtTime(c.usingTurbo ? 900 : 600, t, 0.1);
-      e.wg.gain.setTargetAtTime(c.slipTime > 0.3 ? 0.06 : 0, t, 0.2);
+      const sp = Math.min(1.4, v / 55);
+      e.wg.gain.setTargetAtTime(sp * sp * 0.07 + (c.slipTime > 0.3 ? 0.05 : 0), t, 0.2);
+      e.wf.frequency.setTargetAtTime(500 + sp * 1200, t, 0.2);
+      e.rg.gain.setTargetAtTime(ground ? Math.min(1, v / 30) * 0.12 : 0, t, 0.1);
       // eventos de un frame
       const pan = e.pan ? e.pan.pan.value : 0;
       if (c.ev.wall > 3) this.crash(Math.min(1, c.ev.wall / 25), pan);
@@ -149,6 +173,40 @@ export class AudioSys {
       if (c.usingTurbo && !e.wasTurbo) this.whoosh(0.4, 0.8, pan);
       if (c.ev.backfire) this.pop(pan);
       e.wasTurbo = c.usingTurbo;
+    }
+    // rival cercano
+    const rv = this.rival;
+    if (rv && this.engines[0]) {
+      const me = this.engines[0].rig.racer.car;
+      rv.pick -= dt;
+      if (rv.pick <= 0) {
+        rv.pick = 0.6;
+        let best = null, bd = 70;
+        for (const o of race.racers) {
+          if (o.human) continue;
+          const d = Math.hypot(o.car.x - me.x, o.car.z - me.z);
+          if (d < bd) { bd = d; best = o; }
+        }
+        if (best !== rv.racer) {
+          if (rv.voice) rv.voice.stop();
+          rv.racer = best;
+          rv.voice = best ? new EngineVoice(this.ctx, rv.out, best.carDef, this.workletOk, this.noiseBuf) : null;
+        }
+      }
+      if (rv.voice && rv.racer) {
+        const c = rv.racer.car;
+        const dx = c.x - me.x, dz = c.z - me.z;
+        const d = Math.hypot(dx, dz) || 1;
+        // Doppler: velocidad relativa en la dirección que los une (exagerado un poco)
+        const rel = ((c.vx - me.vx) * dx + (c.vz - me.vz) * dz) / d;
+        const doppler = Math.max(0.75, Math.min(1.3, 1 - rel / 340 * 3));
+        const gm = Math.min(1, 7 / (d + 3));
+        rv.voice.update(dt, c, racing ? 0.85 : 0.1, racing, doppler, gm * 0.8);
+        if (rv.pan) {
+          const side = -dx * Math.cos(me.heading) + dz * Math.sin(me.heading);
+          rv.pan.pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, -side / (d + 2))), t, 0.05);
+        }
+      }
     }
   }
 

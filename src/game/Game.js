@@ -242,7 +242,7 @@ export class Game {
       sun.target.updateMatrixWorld();
     }
     if (this.isDemo) { race.events.length = 0; return; }
-    this.audio.update(dt, race);
+    this.audio.update(dt, race, inputs);
     for (const h of this.huds) h.update(dt, race, this.input.kb);
     this.emit('raceTick', dt);
     handleRaceEvents(this, race);

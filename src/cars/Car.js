@@ -71,6 +71,7 @@ export class Car {
     const throttle = spinning ? 0 : inp.throttle;
     const brake = spinning ? 0 : inp.brake;
     this.braking = brake > 0 && this.vf > 1;
+    this.throttleIn = throttle;
 
     // ---------- turbo
     let mul = 1, extra = 0;
