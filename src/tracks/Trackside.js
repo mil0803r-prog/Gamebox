@@ -141,7 +141,35 @@ export function buildTrackside(track, theme, group, rand, quality) {
     }
     a++;
   }
-  if (archPosts.length) {
+  if (archPosts.length && track.def.theme === 'coast') {
+    // pórticos con letreros verdes de autopista
+    const SIGNS = [['Puerto', '↗ SALIDA 3'], ['Utopía', '12 km'], ['Centro', '↑ 8 km'], ['Playa', '→ SALIDA 5']];
+    const signMats = SIGNS.map(([a, bb]) => {
+      const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+      const g = c.getContext('2d');
+      g.fillStyle = '#0f6b3a'; g.fillRect(0, 0, 256, 128);
+      g.strokeStyle = '#fff'; g.lineWidth = 6; g.strokeRect(6, 6, 244, 116);
+      g.fillStyle = '#fff'; g.textAlign = 'center'; g.font = 'bold 46px Arial, sans-serif'; g.fillText(a, 128, 58);
+      g.font = 'bold 30px Arial, sans-serif'; g.fillText(bb, 128, 102);
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+      return new THREE.MeshBasicMaterial({ map: t, side: THREE.DoubleSide });
+    });
+    const signGeo = new THREE.PlaneGeometry(6, 3);
+    let si = 0;
+    for (let s = 260; s < L - 120; s += 230) {
+      const p = m.pointAt(s);
+      const ry = Math.atan2(p.fx, p.fz) + Math.PI;
+      for (const lat of [-p.hw * 0.45, p.hw * 0.45]) {
+        const q = m.pointAt(s, lat);
+        const mesh = new THREE.Mesh(signGeo, signMats[si++ % signMats.length]);
+        mesh.position.set(q.x, q.y + 6.3, q.z);
+        mesh.rotation.y = ry;
+        group.add(mesh);
+      }
+    }
+    group.add(inst(new THREE.BoxGeometry(1, 0.5, 0.5), new THREE.MeshLambertMaterial({ color: 0x8a8f9c }), [...arches[0], ...arches[1]]));
+    group.add(inst(new THREE.BoxGeometry(0.5, 7.2, 0.5), new THREE.MeshLambertMaterial({ color: 0x8a8f9c }), archPosts));
+  } else if (archPosts.length) {
     const colA = theme.basic ? 0x00e5ff : 0xffffff, colB = theme.basic ? 0xff2bd6 : 0xff3b3b;
     const beam = new THREE.BoxGeometry(1, 0.6, 0.5);
     group.add(inst(beam, new THREE.MeshBasicMaterial({ color: colA }), arches[0]));

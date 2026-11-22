@@ -26,7 +26,20 @@ export function roadTexture(theme) {
     city: { base: '#2b2d38', line: '#ffe14d', edge1: '#ff2bd6', edge2: '#1a1a24' },
     desert: { base: '#7d6450', line: '#fff3d6', edge1: '#d9332b', edge2: '#f5f0e6' },
     snow: { base: '#4a4f5a', line: '#ffffff', edge1: '#d9332b', edge2: '#f5f5f5' },
+    coast: { base: '#55585f', line: '#ffd21f', edge1: '#e8e8e8', edge2: '#55585f', lanes: true },
   }[theme];
+  if (pal.lanes) {
+    // autopista de 4 carriles: bordes blancos continuos, carriles discontinuos y doble línea amarilla al centro
+    return canvasTex(256, 256, (g, w, h) => {
+      g.fillStyle = pal.base; g.fillRect(0, 0, w, h);
+      noise(g, w, h, 0.08, 3500);
+      g.fillStyle = 'rgba(255,255,255,0.92)';
+      g.fillRect(8, 0, 5, h); g.fillRect(w - 13, 0, 5, h);
+      g.fillRect(w * 0.25 - 2, 0, 4, h * 0.45); g.fillRect(w * 0.75 - 2, 0, 4, h * 0.45);
+      g.fillStyle = pal.line;
+      g.fillRect(w / 2 - 6, 0, 4, h); g.fillRect(w / 2 + 2, 0, 4, h);
+    });
+  }
   return canvasTex(256, 256, (g, w, h) => {
     g.fillStyle = pal.base; g.fillRect(0, 0, w, h);
     noise(g, w, h, 0.08, 3000);
@@ -74,6 +87,7 @@ export function groundTexture(theme) {
     city: ['#16161f', '#22222e', 0.15],
     desert: ['#d9a35f', '#c48848', 0.12],
     snow: ['#eef3f8', '#d5e0ea', 0.1],
+    coast: ['#a9bb6c', '#93a85a', 0.12],
   }[theme];
   return canvasTex(256, 256, (g, w, h) => {
     g.fillStyle = cfg[0]; g.fillRect(0, 0, w, h);

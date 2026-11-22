@@ -1,5 +1,6 @@
 import { Records, Profile, Settings } from '../../game/Storage.js';
 import { el, hex, fmtTime, money } from '../dom.js';
+import { COIN_VALUE } from '../../game/Pickups.js';
 import { showTrackSelect } from './TrackSelect.js';
 
 export function showResults(ui) {
@@ -39,6 +40,10 @@ export function showResults(ui) {
     const bonus = [];
     if (recMsgs.some(m => m.includes(row.r.name) && m.includes('vuelta'))) { prize += 2500; bonus.push('récord de vuelta +$2.500'); }
     if (recMsgs.some(m => m.includes(row.r.name) && m.includes('carrera'))) { prize += 5000; bonus.push('récord de carrera +$5.000'); }
+    // monedas y cajones sorpresa recogidos en la pista
+    const coinCash = (row.r.coins || 0) * COIN_VALUE;
+    if (coinCash) { prize += coinCash; bonus.push(`🪙 ${row.r.coins} monedas +${money(coinCash)}`); }
+    if (row.r.bonus) { prize += row.r.bonus; bonus.push(`🎁 cajones +${money(row.r.bonus)}`); }
     earnings.push({ name: row.r.name, place: i + 1, prize, bonus });
     Profile.earn(prize);
   });

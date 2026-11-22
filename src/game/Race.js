@@ -16,7 +16,7 @@ export class Race {
       return {
         index: i, car, name: e.name, human: e.human, humanIndex: e.humanIndex, ai: null, aiLevel: e.aiLevel,
         lap: 0, nextCp: this.numCp, lapStart: 0, lapTimes: [], finished: false, finishTime: 0, place: i + 1,
-        prevProgress: 0, wrongWay: 0, color: e.color, carDef: e.car, raceDist: 0, padCooldown: 0,
+        prevProgress: 0, wrongWay: 0, coins: 0, bonus: 0, color: e.color, carDef: e.car, raceDist: 0, padCooldown: 0,
       };
     });
     this.placeGrid();
@@ -45,7 +45,7 @@ export class Race {
     return Math.ceil(-this.time / CONFIG.race.countdownStep);
   }
 
-  update(dt, inputs, aiSystem, items) {
+  update(dt, inputs, aiSystem, items, pickups) {
     const prevCount = this.countdownValue;
     this.time += dt;
     if (this.state === 'countdown') {
@@ -80,10 +80,16 @@ export class Race {
       for (let i = 0; i < this.racers.length; i++) this.racers[i].car.step(h, ins[i], this.time);
       this.collideCars();
     }
+    if (this.traffic) this.traffic.update(dt, this);
     if (racing) {
       this.updateSlipstream(dt);
       this.updatePads(dt);
+      for (const r of this.racers) {
+        if (r.car.shieldTimer > 0) r.car.shieldTimer -= dt;
+        if (r.car.magnetTimer > 0) r.car.magnetTimer -= dt;
+      }
       if (items) items.update(dt, this, ins);
+      if (pickups) pickups.update(dt, this);
       for (const r of this.racers) this.updateProgress(r, dt);
       this.updatePlaces();
     }

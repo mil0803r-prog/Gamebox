@@ -94,3 +94,12 @@
 #hud.touch .phud.compact .g-label { display: none; }
 #hud.touch .ph-tr { flex-direction: column; align-items: flex-end; }
 #hud.touch .ph-tag { display: none; }
+.ph-coins { display: flex; align-items: center; gap: 0.3em; margin-top: 0.35em; font-size: 0.85em; padding: 0.2em 0.6em 0.2em 0.35em; border-radius: 0.6em;
+  background: rgba(0,0,0,0.45); border: 1px solid rgba(255,198,31,0.6); }
+.ph-coins i { font-style: normal; }
+.ph-coins b { color: var(--yellow); font-variant-numeric: tabular-nums; }
+.ph-cash { color: #5dff9a; font-size: 0.85em; margin-left: 0.3em; font-variant-numeric: tabular-nums; }
+.ph-coins.bump { animation: coinbump 0.35s ease; }
+@keyframes coinbump { 40% { transform: scale(1.18); } }
+.ph-msg.chest { color: var(--yellow); font-size: 2.2em; -webkit-text-stroke: 0.03em #7a3a00; }
+.ph-msg.chest.jackpot { color: #ff7ae0; font-size: 2.8em; }

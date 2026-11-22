@@ -10,6 +10,8 @@ import { DemoCamera } from './DemoCamera.js';
 import { Effects } from './Effects.js';
 import { AISystem } from './AI.js';
 import { Items } from './Items.js';
+import { Pickups } from './Pickups.js';
+import { Traffic } from './Traffic.js';
 import { Quality } from './Quality.js';
 import { Settings } from './Storage.js';
 import { splitMode, computeViews } from './Viewports.js';
@@ -96,10 +98,13 @@ export class Game {
     const def = TRACKS.find(t => t.id === cfg.trackId) || TRACKS[0];
     this.track = new Track(def);
     this.trackScene = buildTrackScene(this.track, this.scene, this.quality ? this.quality.level : 2);
-    this.scene.environmentIntensity = { city: 0.45, desert: 1, snow: 1.1 }[def.theme] ?? 1;
+    this.captureEnvironment(def.theme); // reflejos reales del escenario en la pintura
     this.race = new Race(this.track, cfg.entries, { laps: cfg.laps, items: cfg.items });
     for (const r of this.race.racers) this.scene.add(r.car.model.root);
     if (cfg.items) { this.items = new Items(this.scene, this.track); this.race.items = this.items; }
+    this.pickups = cfg.pickups !== false ? new Pickups(this.scene, this.track) : null;
+    this.traffic = def.traffic ? new Traffic(this.scene, this.track) : null;
+    this.race.traffic = this.traffic;
 
     const humans = this.race.racers.filter(r => r.human).sort((a, b) => a.humanIndex - b.humanIndex);
     this.input.setHumans(Math.max(1, humans.length));
@@ -109,6 +114,7 @@ export class Game {
     } else {
       this.rigs = humans.map((r, i) => {
         const rig = new CameraRig(i);
+        rig.far = Settings.data.camera === 'far';
         rig.racer = r;
         rig.snap(r.car);
         return rig;
@@ -132,6 +138,28 @@ export class Game {
     this.clock.getDelta();
   }
 
+  // Genera un mapa de reflejos desde un punto de la pista (cielo, edificios, luces, terreno)
+  captureEnvironment(theme) {
+    const p = this.track.main.pointAt(this.track.length * 0.5);
+    const y = p.y + 4;
+    const g = this.trackScene.group;
+    g.position.set(-p.x, -y, -p.z);
+    this.trackScene.sky.position.set(p.x, y, p.z);
+    g.updateMatrixWorld(true);
+    const r = this.renderer;
+    r.setScissorTest(false);
+    const pm = new THREE.PMREMGenerator(r);
+    const rt = pm.fromScene(this.scene, 0.02, 0.5, 1500);
+    pm.dispose();
+    r.setScissorTest(true);
+    g.position.set(0, 0, 0);
+    g.updateMatrixWorld(true);
+    if (this.envRT) this.envRT.dispose();
+    this.envRT = rt;
+    this.scene.environment = rt.texture;
+    this.scene.environmentIntensity = { city: 1.6, desert: 1.0, snow: 0.95, coast: 1.0 }[theme] ?? 1;
+  }
+
   // Carrera de demostración (solo IA) que se ve detrás de los menús
   startDemo() {
     const t = TRACKS[Math.floor(Math.random() * TRACKS.length)];
@@ -145,6 +173,8 @@ export class Game {
   endRace() {
     if (this.trackScene) this.trackScene.dispose();
     if (this.items) { this.items.dispose(); this.items = null; }
+    if (this.pickups) { this.pickups.dispose(); this.pickups = null; }
+    if (this.traffic) { this.traffic.dispose(); this.traffic = null; }
     if (this.race) for (const r of this.race.racers) this.scene.remove(r.car.model.root);
     this.effects.detach();
     this.touch.clear();
@@ -178,7 +208,7 @@ export class Game {
 
   updateRace(dt, inputs) {
     const race = this.race;
-    race.update(dt, inputs, this.ai, this.items);
+    race.update(dt, inputs, this.ai, this.items, this.pickups);
     this.trackScene.update(dt, race.time);
     for (const rig of this.rigs) rig.update(dt, rig.racer.car);
     this.effects.update(dt);

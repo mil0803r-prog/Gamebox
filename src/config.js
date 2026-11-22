@@ -77,12 +77,16 @@ export const CONFIG = {
 
   // ------------------------------------------------------------ CÁMARA
   camera: {
-    distance: 6.6,
-    distanceSpeedAdd: 2.4,   // se aleja con la velocidad
-    height: 2.7,
-    heightSpeedAdd: 0.5,
-    lookAhead: 5,
-    lookHeight: 1.1,
+    // cámara cercana y baja (el auto se ve grande, como en los juegos de autopista)
+    distance: 4.7,
+    distanceSpeedAdd: 0.9,   // se aleja con la velocidad
+    height: 1.75,
+    heightSpeedAdd: 0.25,
+    maxStretch: 1.08,        // cuánto puede quedarse atrás la cámara (1 = pegada)
+    lookAhead: 7,
+    lookHeight: 1.25,
+    // cámara lejana (opción en el menú)
+    far: { distance: 6.8, distanceSpeedAdd: 2.4, height: 2.8, heightSpeedAdd: 0.5, lookAhead: 5, lookHeight: 1.1, maxStretch: 1.25 },
     fov: 66,
     fovSpeedAdd: 14,         // FOV extra a velocidad máxima
     posSmooth: 9,            // suavizado de posición (más alto = más pegada)

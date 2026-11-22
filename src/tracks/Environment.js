@@ -139,5 +139,73 @@ export function buildEnvironment(track, theme, group, quality) {
     group.add(instanced(mount, vmat, ms, (o, it) => { o.scale.set(it.r, it.r * (1.1 + rand() * 0.6), it.r); o.position.y -= 5; }));
   }
 
+  if (t === 'coast') {
+    const b = track.bounds;
+    // ---- mar con olas (textura que se desplaza)
+    const wc = document.createElement('canvas'); wc.width = wc.height = 256;
+    const wg = wc.getContext('2d');
+    wg.fillStyle = '#1d6db3'; wg.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 900; i++) {
+      wg.fillStyle = `rgba(${200 + rand() * 55 | 0},${230 + rand() * 25 | 0},255,${0.08 + rand() * 0.18})`;
+      wg.fillRect(rand() * 256, rand() * 256, 6 + rand() * 18, 1.5);
+    }
+    const wtex = new THREE.CanvasTexture(wc); wtex.colorSpace = THREE.SRGBColorSpace;
+    wtex.wrapS = wtex.wrapT = THREE.RepeatWrapping; wtex.repeat.set(60, 60);
+    const sea = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000).rotateX(-Math.PI / 2),
+      new THREE.MeshStandardMaterial({ map: wtex, color: 0xffffff, roughness: 0.18, metalness: 0.25 }));
+    sea.position.set(b.center.x, -0.55, b.center.z - 1200 - 70);
+    group.add(sea);
+    updaters.push(dt => { wtex.offset.x += dt * 0.004; wtex.offset.y += dt * 0.007; });
+
+    const vmat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+    // ---- puerto: contenedores apilados en el muelle
+    const contCols = [0xd9332b, 0x2f6fd0, 0x2fa05a, 0xf0a020, 0x8a8f9c, 0xe8e8e8, 0x1f8f9a, 0xa04ad0];
+    const conts = [];
+    for (let x = 120; x < 690; x += 7) {
+      for (let z = -150; z < -60; z += 3.2) {
+        if (rand() < 0.35) continue;
+        const h = 1 + Math.floor(rand() * 4);
+        for (let k = 0; k < h; k++) conts.push({ x, y: 0.6 + k * 2.6, z, c: contCols[(rand() * contCols.length) | 0] });
+      }
+    }
+    const cm = instanced(new THREE.BoxGeometry(6, 2.5, 2.9).translate(0, 1.25, 0), new THREE.MeshLambertMaterial({ color: 0xffffff }), conts);
+    conts.forEach((c, i) => cm.setColorAt(i, new THREE.Color(c.c)));
+    if (cm.instanceColor) cm.instanceColor.needsUpdate = true;
+    group.add(cm);
+    // ---- grúas del puerto
+    const crane = mergeGeometries([
+      colored(new THREE.BoxGeometry(1.4, 34, 1.4).translate(-5, 17, 0), 0xf2b51f),
+      colored(new THREE.BoxGeometry(1.4, 34, 1.4).translate(5, 17, 0), 0xf2b51f),
+      colored(new THREE.BoxGeometry(12, 1.6, 1.6).translate(0, 30, 0), 0xf2b51f),
+      colored(new THREE.BoxGeometry(2, 2, 52).translate(0, 36, -14), 0xf2b51f),
+      colored(new THREE.BoxGeometry(4, 3, 4).translate(0, 38.5, 4), 0xe8e8e8),
+      colored(new THREE.BoxGeometry(0.2, 18, 0.2).translate(0, 26, -30), 0x333333),
+    ]);
+    const cranes = [180, 320, 470, 620].map(x => ({ x, y: 0.6, z: -165, rot: 0 }));
+    group.add(instanced(crane, vmat, cranes));
+    // ---- barcos en el mar
+    const ship = mergeGeometries([
+      colored(new THREE.BoxGeometry(14, 6, 70).translate(0, 1, 0), 0x2a3a5a),
+      colored(new THREE.BoxGeometry(12, 6, 14).translate(0, 7, -24), 0xf2f2f2),
+      colored(new THREE.BoxGeometry(13, 5, 40).translate(0, 6, 8), 0xd9332b),
+    ]);
+    group.add(instanced(ship, vmat, [{ x: 250, y: -0.5, z: -260, rot: 1.4 }, { x: 640, y: -0.5, z: -330, rot: 1.7 }, { x: -100, y: -0.5, z: -400, rot: 1.2 }]));
+    // ---- ciudad de día al norte
+    const bm = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    const blds = scatter(track, Math.round(110 * dens), 40, 260, rand).filter(p => p.z > 120).map(p => ({ ...p, rot: rand() * 0.3, w: 14 + rand() * 20, h: 20 + rand() * 70 * (p.d > 120 ? 1.5 : 1) }));
+    const bi = instanced(new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0), bm, blds, (o, it) => o.scale.set(it.w, it.h, it.w * (0.7 + rand() * 0.6)));
+    const bcols = [0xdfe6ee, 0x9fb8d0, 0xc9d3dc, 0x7fa0c0, 0xe8e0d0, 0xb0c4d8];
+    blds.forEach((_, i) => bi.setColorAt(i, new THREE.Color(bcols[i % bcols.length])));
+    if (bi.instanceColor) bi.instanceColor.needsUpdate = true;
+    group.add(bi);
+    // ---- palmeras junto a la autopista
+    const palm = mergeGeometries([
+      colored(new THREE.CylinderGeometry(0.22, 0.32, 7, 6).translate(0, 3.5, 0), 0x8a6a42),
+      ...[0, 1, 2, 3, 4, 5].map(i => colored(new THREE.BoxGeometry(0.5, 0.12, 3.4).translate(0, 0, 1.6).rotateX(0.5).rotateY(i * Math.PI / 3).translate(0, 7, 0), 0x2f8f3a)),
+    ]);
+    const palms = scatter(track, Math.round(120 * dens), 4, 40, rand).filter(p => p.y > -0.2).map(p => ({ ...p, rot: rand() * 6 }));
+    group.add(instanced(palm, vmat, palms, (o, it) => o.scale.setScalar(0.9 + rand() * 0.5)));
+  }
+
   return { update(dt, time) { updaters.forEach(u => u(dt, time)); } };
 }

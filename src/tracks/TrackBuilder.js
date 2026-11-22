@@ -13,6 +13,11 @@ export const THEMES = {
     sky: ['#3d7fd6', '#9cc8f0', '#ffe2b0'], fog: 0xf0d2a0, fogNear: 120, fogFar: 750,
     hemi: [0xfff1d6, 0x9a6a3a, 1.0], sun: [0xfff0d0, 1.4], sunDir: [0.5, 0.28, 0.4], sunCol: 0xfff3c0, sunSize: 0.9988, stars: 0, clouds: 0.35, wallA: 0xd94a2b, wallB: [0xf5f0e6, 0xd94a2b], wallH: 1.0,
   },
+  coast: {
+    sky: ['#2f86e8', '#a6d4ff', '#eaf6ff'], fog: 0xd6ecfa, fogNear: 160, fogFar: 950,
+    hemi: [0xffffff, 0x8aa0b0, 1.1], sun: [0xfff6e0, 1.5], sunDir: [0.3, 0.42, -0.75], sunCol: 0xfff8e0, sunSize: 0.9989, stars: 0, clouds: 0.45,
+    wallA: 0xb9bdc6, wallB: [0xdfe2e8, 0xc4c8d0], wallH: 1.05,
+  },
   snow: {
     sky: ['#5d8fcf', '#b8d4f0', '#eef4fb'], fog: 0xdfe9f5, fogNear: 90, fogFar: 600,
     hemi: [0xeaf3ff, 0x8090a8, 1.05], sun: [0xffffff, 1.1], sunDir: [0.4, 0.45, -0.5], sunCol: 0xffffff, sunSize: 0.9991, stars: 0, clouds: 0.6, wallA: 0xffffff, wallB: [0xe23b3b, 0xf8f8f8], wallH: 1.1,
@@ -76,6 +81,14 @@ export function buildTrackScene(track, scene, quality = 2) {
   const natural = (x, z) => {
     if (track.def.theme === 'city') return 0;
     const dc = Math.hypot(x - center.x, z - center.z);
+    if (track.def.theme === 'coast') {
+      // mar al sur de la autopista; muelle del puerto; tierra firme al norte
+      const pier = x > 80 && x < 720 && z < -40 && z > -170;
+      if (pier) return 0.6;
+      if (z < -60) return -4;
+      if (z < -30) return -4 + (z + 60) / 30 * 4.6;
+      return 1.3 + vnoise(x, z) * 0.8 + Math.max(0, z - 450) * 0.08;
+    }
     if (track.def.theme === 'desert') {
       return 2 + vnoise(x, z) * 5 + Math.max(0, dc - bounds.size * 0.6) * 0.15;
     }

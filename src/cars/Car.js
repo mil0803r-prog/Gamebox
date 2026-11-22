@@ -37,7 +37,7 @@ export class Car {
     // rebufo
     this.slipTime = 0; this.slipActive = false;
     // ítems
-    this.shieldTimer = 0; this.spinTimer = 0; this.item = null;
+    this.shieldTimer = 0; this.spinTimer = 0; this.item = null; this.magnetTimer = 0;
     // eventos de este frame (para sonido / efectos)
     this.ev = { wall: 0, land: 0, miniTurbo: 0, pad: false, bump: 0 };
     this.progress = this.q.progress;
@@ -264,12 +264,14 @@ export class Car {
       f.visible = fl;
       if (fl) {
         const s = 0.8 + Math.random() * 0.6;
-        f.scale.set(1, 1, s * (this.usingTurbo ? 1.4 : 1.1));
+        f.scale.set(1, 1, s * (this.usingTurbo ? 1.25 : 1.0));
       }
     }
     if (fl) {
-      m.flameMat.color.setHex(this.usingTurbo ? 0xff7a1a : (this.boostColor || 0x33ddff));
+      m.flameMat.color.setHex(this.usingTurbo ? 0x2a7bff : (this.boostColor || 0x33ddff));
     }
+    const blur = Math.abs(this.vf) > 30;
+    if (blur !== this._blurShown) { this._blurShown = blur; m.setBlur(blur); }
     if (this.braking !== this._brakeShown) { this._brakeShown = this.braking; m.setBraking(!!this.braking); }
     m.shield.visible = this.shieldTimer > 0;
     if (m.shield.visible) m.shield.rotation.y += dt * 2;

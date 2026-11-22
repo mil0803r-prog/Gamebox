@@ -48,11 +48,16 @@ export class Minimap {
     this.bg = off;
   }
 
-  draw(racers, meIndex) {
+  draw(racers, meIndex, traffic) {
     const g = this.canvas.getContext('2d');
     const S = this.canvas.width;
     g.clearRect(0, 0, S, S);
     g.drawImage(this.bg, 0, 0);
+    if (traffic) {
+      g.fillStyle = 'rgba(200,205,215,0.85)';
+      const tr = S * 0.018;
+      for (const v of traffic.vehicles) g.fillRect(v.x * this.scale + this.ox - tr, v.z * this.scale + this.oz - tr, tr * 2, tr * 2);
+    }
     const r0 = S * 0.04;
     // primero los rivales, luego yo encima
     const order = racers.slice().sort((a, b) => (a.index === meIndex) - (b.index === meIndex));

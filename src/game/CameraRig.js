@@ -39,8 +39,9 @@ export class CameraRig {
     if (car.spinTimer > 0) target = this.yaw; // no girar la cámara con el trompo
     this.yaw = snap ? target : angLerp(this.yaw, target, 1 - Math.exp(-C.yawSmooth * dt));
 
-    const dist = C.distance + C.distanceSpeedAdd * ratio;
-    const h = C.height + C.heightSpeedAdd * ratio;
+    const V = this.far ? C.far : C;
+    const dist = V.distance + V.distanceSpeedAdd * ratio;
+    const h = V.height + V.heightSpeedAdd * ratio;
     const fx = Math.sin(this.yaw), fz = Math.cos(this.yaw);
     const tx = car.x - fx * dist, tz = car.z - fz * dist;
     const ty = car.y + h;
@@ -54,10 +55,11 @@ export class CameraRig {
     // mantener la distancia horizontal estable (evita que se acerque demasiado a alta velocidad)
     const dx = this.pos.x - car.x, dz = this.pos.z - car.z;
     const d = Math.hypot(dx, dz);
-    if (d > dist * 1.25) { this.pos.x = car.x + dx / d * dist * 1.25; this.pos.z = car.z + dz / d * dist * 1.25; }
+    const maxD = dist * (V.maxStretch || 1.25);
+    if (d > maxD) { this.pos.x = car.x + dx / d * maxD; this.pos.z = car.z + dz / d * maxD; }
     if (this.pos.y < car.y + 1.2) this.pos.y = car.y + 1.2;
 
-    this.look.set(car.x + fx * C.lookAhead, car.y + C.lookHeight, car.z + fz * C.lookAhead);
+    this.look.set(car.x + fx * V.lookAhead, car.y + V.lookHeight, car.z + fz * V.lookAhead);
 
     // FOV con la velocidad y el turbo
     const boost = car.boosting ? 1 : 0;

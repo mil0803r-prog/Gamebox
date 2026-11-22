@@ -13,6 +13,7 @@ const ROWS = [
     ['split', 'División de pantalla', [['auto', 'Auto'], ['horizontal', 'Arriba/abajo'], ['vertical', 'Lado a lado']]],
   ]],
   ['Gráficos', [
+    ['camera', 'Cámara', [['near', 'Cercana'], ['far', 'Lejana']]],
     ['quality', 'Calidad', [['auto', 'Auto'], ['low', 'Baja'], ['medium', 'Media'], ['high', 'Alta']]],
     ['showFps', 'Mostrar FPS', [[false, 'No'], [true, 'Sí']]],
   ]],

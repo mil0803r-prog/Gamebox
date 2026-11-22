@@ -42,6 +42,8 @@ Usa rutas relativas, así que funciona en la raíz o en una subcarpeta. Tras la 
 - **Turbo:** gasta la barra para un empujón fuerte (llamas, líneas de velocidad, FOV más amplio y vibración de cámara).
 - **Rebufo:** ve detrás del rival un par de segundos para cargar turbo extra (líneas de viento).
 - **Pads de turbo**, **rampas** y **atajos** (camino amarillo en el mini-mapa) en cada pista.
+- **Monedas y cajones sorpresa** en todas las pistas (se pueden apagar): cada moneda vale $50; los cajones dan bolsa de dinero, turbo lleno, escudo, imán de monedas o el premio mayor de $10.000. Hay más monedas en los atajos y en el aire sobre las rampas.
+- **Autopista Costera**: pista de día de 4 carriles junto al mar y un puerto, con tráfico (autos, camionetas y camiones) que hay que esquivar.
 - **Modo ítems** (opcional): turbo extra, mancha de aceite y escudo.
 
 ## Autos y concesionario

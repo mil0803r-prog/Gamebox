@@ -1,4 +1,5 @@
 import { COUNT_TEXT, fmtTime } from '../ui/hud/HUD.js';
+import { PRIZE_TEXT } from './Pickups.js';
 
 // Traduce los eventos de la carrera en sonidos y mensajes del HUD
 export function handleRaceEvents(game, race) {
@@ -32,6 +33,13 @@ export function handleRaceEvents(game, race) {
         break;
       case 'shieldBlock':
         audio.item('shield');
+        break;
+      case 'coin':
+        if (human) audio.coin();
+        break;
+      case 'chest':
+        if (human) audio.chest(e.kind);
+        if (h) { const [t, sub] = PRIZE_TEXT[e.kind](e.amount); h.flash(t, sub, 1.5, 'chest ' + e.kind); }
         break;
       case 'oilHit':
         audio.item('oil');

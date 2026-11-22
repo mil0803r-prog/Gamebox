@@ -219,6 +219,16 @@ export class AudioSys {
     if (!this.ctx) return;
     [523, 659, 784, 1046, 784, 1046].forEach((f, i) => setTimeout(() => this.beep(f, i === 5 ? 0.6 : 0.16, 0.22, 'triangle'), i * 140));
   }
+  coin() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [1320, 1980].forEach((f, i) => { const o = this.osc('square', f, t + i * 0.055, 0.09); this.out(this.env(o, t + i * 0.055, 0.09, 0.09)); });
+  }
+  chest(kind) {
+    if (!this.ctx) return;
+    const notes = kind === 'jackpot' ? [523, 659, 784, 1046, 1318, 1568] : [659, 880, 1175];
+    notes.forEach((f, i) => setTimeout(() => this.beep(f, 0.14, 0.2, 'triangle'), i * 90));
+  }
   item(kind) {
     if (!this.ctx) return;
     if (kind === 'get') [700, 900, 1200].forEach((f, i) => setTimeout(() => this.beep(f, 0.08, 0.15, 'triangle'), i * 60));

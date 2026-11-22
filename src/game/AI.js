@@ -62,6 +62,18 @@ export class AISystem {
         bias += pref * dt * 6;
       }
     }
+    // esquivar el tráfico de la autopista
+    if (race.traffic) for (const v of race.traffic.vehicles) {
+      const dx = v.x - c.x, dz = v.z - c.z;
+      const along = dx * fx + dz * fz;
+      if (along < 0 || along > 20 + speed * 0.6) continue;
+      const side = -dx * fz + dz * fx;
+      if (Math.abs(side) < v.halfW + 2.6) {
+        let dir = side > 0 ? -1 : 1;                              // alejarse del vehículo
+        if (Math.abs(mp.lat + dir * 5) > mp.hw - 2) dir = -dir;   // si no hay espacio, por el otro lado
+        bias += dir * dt * 16;
+      }
+    }
     // evitar manchas de aceite
     if (race.items) for (const oil of race.items.oils) {
       const dx = oil.x - c.x, dz = oil.z - c.z;

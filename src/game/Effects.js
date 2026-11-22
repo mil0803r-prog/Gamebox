@@ -210,7 +210,7 @@ export class Effects {
     this.race = race;
     this.skids.clear();
     this.skidLast = race.racers.map(() => [null, null]);
-    this.dustColor = { city: 0x777799, desert: 0xd9a35f, snow: 0xffffff }[theme] || 0x888888;
+    this.dustColor = { city: 0x777799, desert: 0xd9a35f, snow: 0xffffff, coast: 0xc8c8c0 }[theme] || 0x888888;
     const blobMat = new THREE.MeshBasicMaterial({ map: this.blobTex, transparent: true, depthWrite: false });
     const geo = new THREE.PlaneGeometry(2.6, 5).rotateX(-Math.PI / 2);
     for (const r of race.racers) {
@@ -303,7 +303,7 @@ export class Effects {
       // turbo: partículas de fuego en el escape
       if (c.boosting) {
         const fx = Math.sin(c.heading), fz = Math.cos(c.heading);
-        const col = c.usingTurbo ? 0xff7a1a : (c.boostColor || 0x33ddff);
+        const col = c.usingTurbo ? 0x5aa8ff : (c.boostColor || 0x33ddff);
         P.emit(c.x - fx * (m.halfLength + 0.8), c.y + 0.5, c.z - fz * (m.halfLength + 0.8), -fx * 6 + (Math.random() - 0.5) * 2 + c.vx * 0.6, Math.random() * 1.5, -fz * 6 + (Math.random() - 0.5) * 2 + c.vz * 0.6, col, 0.3, 0.45, -1);
       }
       // eventos
@@ -313,6 +313,10 @@ export class Effects {
       if (c.ev.miniTurbo) this.burst(c.x, c.y + 0.6, c.z, D.sparkColors[c.ev.miniTurbo], 20 + c.ev.miniTurbo * 6, 9, 0.5, 0.4, 4);
       if (c.ev.pad) this.burst(c.x, c.y + 0.4, c.z, 0x33ddff, 14, 6, 0.4, 0.35, 2);
     });
+    for (const e of race.events) {
+      if (e.type === 'coin') this.burst(e.x, e.y, e.z, 0xffd84a, 8, 4, 0.4, 0.3, 2);
+      if (e.type === 'chest') this.burst(e.x, e.y + 1, e.z, e.kind === 'jackpot' ? 0xff4fd8 : 0xffc61f, 34, 9, 0.8, 0.45, 5);
+    }
     P.update(dt);
     for (const e of this.perRig) {
       const c = e.rig.racer.car;

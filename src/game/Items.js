@@ -78,7 +78,6 @@ export class Items {
     }
     race.racers.forEach((r, i) => {
       const c = r.car;
-      if (c.shieldTimer > 0) c.shieldTimer -= dt;
       // recoger caja
       for (const b of this.boxes) {
         if (b.t > 0) continue;

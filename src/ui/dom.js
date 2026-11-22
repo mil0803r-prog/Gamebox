@@ -20,7 +20,8 @@ export const THEME_GRAD = {
   city: 'linear-gradient(135deg,#1a0638 0%,#5a0f7a 55%,#ff2bd6 140%)',
   desert: 'linear-gradient(135deg,#ffcf7a 0%,#f08a3a 50%,#a83a2a 100%)',
   snow: 'linear-gradient(135deg,#e6f2ff 0%,#8fb8e8 50%,#3d5f9a 100%)',
+  coast: 'linear-gradient(135deg,#7fd3ff 0%,#2f86e8 55%,#0c4f8a 100%)',
 };
-export const THEME_ICON = { city: '🌃', desert: '🏜️', snow: '🏔️' };
+export const THEME_ICON = { city: '🌃', desert: '🏜️', snow: '🏔️', coast: '🌊' };
 
 export const money = n => '$' + Math.round(n).toLocaleString('es-ES');

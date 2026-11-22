@@ -3,6 +3,7 @@ const SONGS = {
   menu:    { bpm: 108, prog: [[57, 'm'], [53, 'M'], [48, 'M'], [55, 'M']], lead: 'triangle', drums: 'soft' },
   city:    { bpm: 124, prog: [[57, 'm'], [53, 'M'], [48, 'M'], [55, 'M']], lead: 'sawtooth', drums: 'four' },
   desert:  { bpm: 132, prog: [[52, 'm'], [48, 'M'], [50, 'M'], [47, 'm']], lead: 'square', drums: 'break' },
+  coast:   { bpm: 126, prog: [[50, 'M'], [57, 'M'], [59, 'm'], [55, 'M']], lead: 'sawtooth', drums: 'four' },
   snow:    { bpm: 128, prog: [[48, 'M'], [55, 'M'], [57, 'm'], [53, 'M']], lead: 'triangle', drums: 'four' },
   results: { bpm: 100, prog: [[48, 'M'], [53, 'M'], [55, 'M'], [48, 'M']], lead: 'triangle', drums: 'soft' },
 };

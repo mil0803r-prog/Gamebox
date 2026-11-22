@@ -2,6 +2,7 @@ import { Minimap } from './Minimap.js';
 import { KeyHints } from './KeyHints.js';
 import { Settings } from '../../game/Storage.js';
 import { fmtTime, hex } from '../dom.js';
+import { COIN_VALUE } from '../../game/Pickups.js';
 
 export { fmtTime };
 export const COUNT_TEXT = { 3: '3', 2: '2', 1: '1', 0: '¡YA!' };
@@ -46,6 +47,7 @@ export class PlayerHUD {
         <div class="ph-lapbar"><i></i></div>
         <div class="ph-time">0:00.00</div>
         <div class="ph-best"></div>
+        <div class="ph-coins hidden"><i>🪙</i><b class="ph-coinn">0</b><span class="ph-cash"></span></div>
         <div class="ph-board"></div>
       </div>
       <div class="ph-tr"><div class="ph-map"></div>
@@ -65,6 +67,7 @@ export class PlayerHUD {
     this.posEl = q('.ph-pos'); this.posn = q('.ph-posn'); this.post = q('.ph-post');
     this.lapn = q('.ph-lapn'); this.lapbar = q('.ph-lapbar i'); this.time = q('.ph-time'); this.best = q('.ph-best');
     this.board = q('.ph-board');
+    this.coinsEl = q('.ph-coins'); this.coinN = q('.ph-coinn'); this.cash = q('.ph-cash');
     this.gauge = q('.ph-gauge'); this.spd = q('.ph-spd'); this.tpct = q('.ph-tpct');
     this.spdArc = q('.g-spd'); this.turboArc = q('.g-turbo');
     this.msg = q('.ph-msg'); this.sub = q('.ph-sub'); this.wrong = q('.ph-wrong');
@@ -118,8 +121,19 @@ export class PlayerHUD {
     const bestLap = r.lapTimes.length ? Math.min(...r.lapTimes) : null;
     this.set('best', this.best, bestLap ? 'Mejor ' + fmtTime(bestLap) : '');
 
+    // monedas y dinero ganado en la carrera
+    const earned = (r.coins || 0) * COIN_VALUE + (r.bonus || 0);
+    if (this.last.earned !== earned) {
+      this.last.earned = earned;
+      this.coinsEl.classList.remove('hidden');
+      this.coinN.textContent = r.coins || 0;
+      this.cash.textContent = '+$' + earned.toLocaleString('es-ES');
+      this.coinsEl.classList.remove('bump'); void this.coinsEl.offsetWidth; this.coinsEl.classList.add('bump');
+    }
     // velocímetro
-    const kmh = Math.round(c.speed * 3.6 * (c.displayScale || 1));
+    // km/h de catálogo hasta la velocidad máxima; el exceso por turbo cuenta menos
+    const vmax = c.maxSpeed;
+    const kmh = Math.round((Math.min(c.speed, vmax) * (c.displayScale || 1) + Math.max(0, c.speed - vmax) * 0.6) * 3.6);
     this.set('spd', this.spd, String(kmh));
     const sp = Math.round(Math.min(1, kmh / MAX_KMH) * 100);
     if (this.last.sp !== sp) { this.last.sp = sp; this.spdArc.setAttribute('stroke-dashoffset', C1 * ARC * (1 - sp / 100)); }
@@ -144,7 +158,7 @@ export class PlayerHUD {
       if (this.msgTimer <= 0) { this.msg.className = 'ph-msg'; this.sub.textContent = ''; }
     }
     this.mapTimer -= dt;
-    if (this.mapTimer <= 0) { this.mapTimer = 1 / 30; this.minimap.draw(race.racers, r.index); }
+    if (this.mapTimer <= 0) { this.mapTimer = 1 / 30; this.minimap.draw(race.racers, r.index, race.traffic); }
     // clasificación (solo con más de 2 autos)
     this.boardTimer -= dt;
     if (this.boardTimer <= 0 && race.racers.length > 2) {
