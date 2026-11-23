@@ -71,6 +71,7 @@ export function showDealer(ui, back) {
   const renderInfo = () => {
     const c = sel, own = Profile.owns(c.id), afford = Profile.canAfford(c.price);
     prev.set(c, c.color);
+    ui.showCar(c, c.color, 'center'); // se ve en grande en el showroom
     n.querySelector('.sr-badge').innerHTML = `<span style="--cc:${CLASSES[c.cls].color}">CLASE ${c.cls} · ${CLASSES[c.cls].name.toUpperCase()}</span>`;
     n.querySelector('.sr-brand').textContent = c.brand.toUpperCase();
     n.querySelector('.sr-name').textContent = c.name;
@@ -126,8 +127,8 @@ export function showDealer(ui, back) {
     renderGrid();
   });
   ui.click(n, '[data-a=back]', goBack);
-  renderGrid(); renderInfo();
   ui.screen(n, { back: goBack, demo: true });
+  renderGrid(); renderInfo(); // después de screen() para que el showroom muestre este auto
   ui.keyHandler = code => {
     if (code !== 'KeyA' && code !== 'KeyD') return false;
     const list = [...grid.querySelectorAll('.lot-card')];

@@ -20,7 +20,7 @@ export function showCarSelect(ui) {
   const garage = CARS.filter(c => Profile.owns(c.id));
   const n = el(`<div class="screen select">
     <header class="scr-head"><span class="step">PASO 1 / 2 · TU GARAJE (${garage.length}/${CARS.length})</span><h2>ELIGE TU AUTO</h2></header>
-    <div class="panels ${players === 2 ? 'two' : ''}"></div>
+    <div class="panels ${players === 2 ? 'two' : 'solo'}"></div>
     <div class="menu-row bottom">
       <button class="btn" data-a="back">‹ Atrás</button>
       <button class="btn pink" data-a="shop">🏪 Concesionario</button>
@@ -87,6 +87,7 @@ export function showCarSelect(ui) {
       if (key !== lastKey) {
         if (lastKey && !lastKey.startsWith(car.id)) { pn.classList.remove('swap'); void pn.offsetWidth; pn.classList.add('swap'); }
         prev.set(car, paint);
+        if (p === 0) ui.showCar(car, paint); // el auto grande del showroom de fondo
         lastKey = key;
       }
     };
@@ -104,11 +105,11 @@ export function showCarSelect(ui) {
     };
     pn.querySelectorAll('.arrow').forEach(b => b.addEventListener('click', () => pn._car(+b.dataset.d)));
   }
-  all();
   ui.click(n, '[data-a=back]', () => showMainMenu(ui));
   ui.click(n, '[data-a=shop]', () => showDealer(ui, () => showCarSelect(ui)));
   ui.click(n, '[data-a=next]', () => { Settings.save(); showTrackSelect(ui); });
   ui.screen(n, { back: () => showMainMenu(ui), demo: true });
+  all();
   ui.keyHandler = code => {
     const map = {
       KeyA: [0, '_car', -1], KeyD: [0, '_car', 1], KeyW: [0, '_color', -1], KeyS: [0, '_color', 1],

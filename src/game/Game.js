@@ -7,6 +7,7 @@ import { CARS } from '../cars/carData.js';
 import { Race } from './Race.js';
 import { CameraRig, CAM_NAMES } from './CameraRig.js';
 import { DemoCamera } from './DemoCamera.js';
+import { Showroom } from './Showroom.js';
 import { Effects } from './Effects.js';
 import { AISystem } from './AI.js';
 import { Items } from './Items.js';
@@ -78,6 +79,7 @@ export class Game {
   resize() {
     this.W = window.innerWidth; this.H = window.innerHeight;
     if (this.renderer) this.applyPixelRatio();
+    if (this.showroom) this.showroom.resize(this.W, this.H);
     this.computeViews();
   }
 
@@ -179,6 +181,18 @@ export class Game {
     this.scene.environmentIntensity = { city: 1.6, desert: 1.0, snow: 0.95, coast: 1.0 }[theme] ?? 1;
   }
 
+  // Showroom: el auto del jugador en un estudio (fondo de los menús)
+  startShowroom(def, color, frame = 'right') {
+    if (this.race) this.endRace();
+    if (!this.showroom) this.showroom = new Showroom(this.renderer, this.quality ? this.quality.level : 2);
+    this.showroom.setCar(def, color);
+    this.showroom.framing = frame;
+    this.showroom.resize(this.W, this.H);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.state = 'showroom';
+  }
+
   // Carrera de demostración (solo IA) que se ve detrás de los menús
   startDemo() {
     const t = TRACKS[Math.floor(Math.random() * TRACKS.length)];
@@ -218,6 +232,9 @@ export class Game {
       if (inputs.pausePressed && !this.isDemo) this.emit('pauseToggle');
       if (!this.paused) this.updateRace(dt, inputs);
       this.render();
+    } else if (this.state === 'showroom' && this.showroom) {
+      this.showroom.update(dt);
+      this.showroom.render(this.renderer, this.W, this.H);
     } else {
       this.renderer.setViewport(0, 0, this.W, this.H);
       this.renderer.setScissor(0, 0, this.W, this.H);

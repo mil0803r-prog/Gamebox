@@ -113,6 +113,7 @@ export class UIManager {
     this.previews = keep;
     // barrido diagonal al cambiar entre pantallas completas
     if (node && this.cur && !opts.overlay && !this.cur.classList.contains('overlay')) this.playWipe();
+    this.root.classList.toggle('in-menu', !!node && !opts.overlay);
     if (this.cur) {
       const old = this.cur;
       old.classList.add('leaving');
@@ -128,13 +129,20 @@ export class UIManager {
       this.root.appendChild(node);
       const first = node.querySelector('[data-focus]') || node.querySelector('.btn');
       if (first && !this.game.isTouch) first.focus({ preventScroll: true });
-      if (opts.demo && !this.game.race) this.game.startDemo();
+      if (opts.demo && (!this.game.race || this.game.isDemo)) this.showCar();
     }
     this.navhelp.classList.toggle('hidden', !node || this.game.isTouch || opts.noNav);
     this.moneyEl.classList.toggle('hidden', !node || opts.noMoney || !!opts.overlay && !opts.showMoney);
     this.updateMoney();
     this.navhelp.querySelector('.nh-back').classList.toggle('hidden', !opts.back);
     this.game.input.kb.captureGameKeys = !node;
+  }
+
+  // auto del showroom (por defecto el del jugador 1)
+  showCar(def, color, frame = 'right') {
+    def = def || carById(this.s.p1.car);
+    color = color ?? paintOf(this.s.p1);
+    this.game.startShowroom(def, color, frame);
   }
 
   playWipe() {
