@@ -6,6 +6,22 @@ import { el, money } from './dom.js';
 import { showMainMenu } from './screens/MainMenu.js';
 import { showPauseMenu } from './screens/PauseMenu.js';
 import { showResults } from './screens/Results.js';
+import { showSplash } from './screens/Splash.js';
+import { THEME_GRAD } from './dom.js';
+
+// elementos que entran escalonados y tarjetas que se inclinan con el mouse
+const STAGGER = '.mm-item, .panel, .card, .lot-card, .arm-card, .reccard, .ctl-card, .opt, .ogroup, .pod, .rtable tr, .glass .btn, .earn, .newrec';
+const TILT = '.card, .lot-card, .arm-card, .reccard, .mm-car, .panel';
+const TIPS = [
+  'Mantén el derrape en las curvas: las chispas moradas dan el mini-turbo más fuerte.',
+  'Ve detrás de un rival un par de segundos para cargar turbo con el rebufo.',
+  'Los atajos (en amarillo en el mini-mapa) ahorran tiempo, pero son angostos.',
+  'Cada moneda vale dinero al final… o munición para tus armas.',
+  'Los cajones dorados pueden darte el premio mayor de $10.000.',
+  'Presiona C para cambiar de cámara. Prueba la vista interior.',
+  'Saltar o chocar con una pared cancela la carga del mini-turbo.',
+  'El escudo de los cajones bloquea minas, misiles y láseres.',
+];
 
 // Gestor de la interfaz: cambia de pantalla, navegación con teclado/mando,
 // barra superior, semáforo y la carrera demo de fondo.
@@ -44,7 +60,31 @@ export class UIManager {
       <button class="btn sm" data-a="portrait">Seguir en vertical</button>
     </div>`);
     this.rotateEl.querySelector('[data-a=portrait]').onclick = () => { this.portraitOk = true; this.checkOrientation(); };
-    this.root.append(this.sema, this.fps, this.navhelp, this.moneyEl, this.rotateEl);
+    // transición de barrido entre pantallas y pantalla de carga
+    this.wipe = el(`<div class="wipe"><i></i><i></i><i></i></div>`);
+    this.loading = el(`<div class="loading hidden">
+      <div class="ld-bg"></div>
+      <div class="ld-box">
+        <small class="ld-sub"></small>
+        <b class="ld-title"></b>
+        <div class="ld-bar"><i></i></div>
+        <p class="ld-tip"></p>
+      </div>
+    </div>`);
+    this.root.append(this.sema, this.fps, this.navhelp, this.moneyEl, this.rotateEl, this.wipe, this.loading);
+    // inclinación 3D de tarjetas (solo con mouse)
+    window.addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse' || !this.cur) return;
+      const c = e.target.closest && e.target.closest(TILT);
+      if (this.tilted && this.tilted !== c) { this.tilted.style.removeProperty('--rx'); this.tilted.style.removeProperty('--ry'); }
+      this.tilted = c;
+      if (!c) return;
+      const r = c.getBoundingClientRect();
+      c.style.setProperty('--ry', (((e.clientX - r.left) / r.width - 0.5) * 9).toFixed(2) + 'deg');
+      c.style.setProperty('--rx', (-((e.clientY - r.top) / r.height - 0.5) * 9).toFixed(2) + 'deg');
+      c.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+      c.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    });
     window.addEventListener('resize', () => this.checkOrientation());
     window.addEventListener('orientationchange', () => setTimeout(() => this.checkOrientation(), 250));
     this.checkOrientation();
@@ -62,7 +102,7 @@ export class UIManager {
     game.on('raceTick', () => this.updateSemaphore());
     game.on('frame', dt => this.onFrame(dt));
     window.addEventListener('keydown', e => this.onKey(e));
-    showMainMenu(this);
+    showSplash(this);
   }
 
   // ------------------------------------------------------------ pantallas
@@ -71,6 +111,8 @@ export class UIManager {
     const keep = this.previews.filter(p => node && node.contains(p.canvas));
     this.previews.filter(p => !keep.includes(p)).forEach(p => p.dispose());
     this.previews = keep;
+    // barrido diagonal al cambiar entre pantallas completas
+    if (node && this.cur && !opts.overlay && !this.cur.classList.contains('overlay')) this.playWipe();
     if (this.cur) {
       const old = this.cur;
       old.classList.add('leaving');
@@ -82,6 +124,7 @@ export class UIManager {
     this.backAction = opts.back || null;
     this.topbar.classList.toggle('menu', !!node);
     if (node) {
+      node.querySelectorAll(STAGGER).forEach((e, i) => e.style.setProperty('--i', Math.min(i, 14)));
       this.root.appendChild(node);
       const first = node.querySelector('[data-focus]') || node.querySelector('.btn');
       if (first && !this.game.isTouch) first.focus({ preventScroll: true });
@@ -92,6 +135,10 @@ export class UIManager {
     this.updateMoney();
     this.navhelp.querySelector('.nh-back').classList.toggle('hidden', !opts.back);
     this.game.input.kb.captureGameKeys = !node;
+  }
+
+  playWipe() {
+    this.wipe.classList.remove('go'); void this.wipe.offsetWidth; this.wipe.classList.add('go');
   }
 
   click(node, sel, fn) {
@@ -232,12 +279,26 @@ export class UIManager {
     return [...entries.filter(e => !e.human), ...entries.filter(e => e.human)];
   }
 
+  // pantalla de carga con el nombre de la pista y un consejo, luego arranca la carrera
   startRace() {
-    const s = this.s;
-    // se llama desde un toque: pedir el sensor (iPhone) y horizontal aquí mismo
+    const s = this.s, t = TRACKS[s.track];
     if (this.game.isTouch && s.steerMode === 'tilt' && this.mode === 1) this.game.input.tilt.request();
     this.enterLandscape();
+    const L = this.loading;
+    L.querySelector('.ld-bg').style.background = THEME_GRAD[t.theme];
+    L.querySelector('.ld-sub').textContent = `${t.subtitle} · ${s.laps} vueltas`;
+    L.querySelector('.ld-title').textContent = t.name;
+    L.querySelector('.ld-tip').textContent = '💡 ' + TIPS[(Math.random() * TIPS.length) | 0];
+    L.classList.remove('hidden', 'out'); void L.offsetWidth; L.classList.add('in');
     this.screen(null);
+    setTimeout(() => {
+      this.startRaceNow();
+      setTimeout(() => { L.classList.add('out'); setTimeout(() => L.classList.add('hidden'), 450); }, 650);
+    }, 120);
+  }
+
+  startRaceNow() {
+    const s = this.s;
     this.game.settings.split = s.split;
     this.game.startRace({ trackId: TRACKS[s.track].id, laps: s.laps, items: s.items, entries: this.buildEntries(), autoAccel: s.autoAccel, steerMode: s.steerMode, pickups: s.pickups !== false, weapons: s.weapons !== false });
     this.showPauseButton(true);

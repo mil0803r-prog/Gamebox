@@ -20,6 +20,12 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  // páginas: primero la red (así siempre carga la versión nueva); sin conexión, la guardada
+  if (e.request.mode === 'navigate') {
+    e.respondWith(fetch(e.request).then(res => { const c = res.clone(); caches.open(CACHE).then(k => k.put('./index.html', c)); return res; })
+      .catch(() => caches.match('./index.html')));
+    return;
+  }
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(r => r || fetch(e.request).then(res => {
     if (res.ok && new URL(e.request.url).origin === location.origin) {
       const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy));

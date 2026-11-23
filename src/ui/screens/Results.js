@@ -65,8 +65,8 @@ export function showResults(ui) {
         <div class="pblock"><span>${[2, 1, 3][k]}</span></div>
       </div>` : '<div class="pod empty"></div>').join('')}</div>
     ${recMsgs.map(m => `<div class="newrec">🏆 ${m}</div>`).join('')}
-    ${earnings.length ? `<div class="earnings">${earnings.map(e => `<div class="earn"><span>${e.name} · ${e.place}º</span><b>+${money(e.prize)}</b>${e.bonus.length ? `<small>${e.bonus.join(' · ')}</small>` : ''}</div>`).join('')}
-      <div class="earn total"><span>Saldo</span><b>${money(Profile.data.money)}</b></div></div>` : ''}
+    ${earnings.length ? `<div class="earnings">${earnings.map(e => `<div class="earn"><span>${e.name} · ${e.place}º</span><b data-count="${e.prize}" data-pre="+">+$0</b>${e.bonus.length ? `<small>${e.bonus.join(' · ')}</small>` : ''}</div>`).join('')}
+      <div class="earn total"><span>Saldo</span><b data-count="${Profile.data.money}" data-from="${Profile.data.money - earnings.reduce((a, e) => a + e.prize, 0)}">${money(Profile.data.money)}</b></div></div>` : ''}
     <div class="table-wrap"><table class="rtable">
       <tr><th>#</th><th>Piloto</th><th>Total</th><th>Mejor vuelta</th><th>Vueltas</th></tr>
       ${rows.map((row, i) => `<tr class="${row.r.human ? 'human' : ''}">
@@ -88,5 +88,19 @@ export function showResults(ui) {
     if (a === 'menu') ui.exitToMenu();
   });
   ui.screen(n, { overlay: true, showMoney: true });
+  // el dinero ganado sube contando, con un tic de sonido
+  n.querySelectorAll('[data-count]').forEach(b => {
+    const to = +b.dataset.count, from = +(b.dataset.from || 0), pre = b.dataset.pre || '';
+    const t0 = performance.now() + 700, dur = 1100;
+    let lastTick = 0;
+    const tick = now => {
+      const k = Math.max(0, Math.min(1, (now - t0) / dur));
+      const e = 1 - Math.pow(1 - k, 3);
+      b.textContent = pre + money(from + (to - from) * e);
+      if (k > 0 && k < 1 && now - lastTick > 70) { lastTick = now; ui.game.audio?.beep(1200 + e * 800, 0.03, 0.04, 'square'); }
+      if (k < 1 && b.isConnected) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
   ui.showPauseButton(false);
 }
