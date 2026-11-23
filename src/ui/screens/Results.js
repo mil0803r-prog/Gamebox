@@ -87,7 +87,9 @@ export function showResults(ui) {
         <td class="${row.best === allBest ? 'fast' : ''}">${fmtTime(row.best)}${row.best === allBest ? ' ⚡' : ''}</td>
         <td class="laps">${row.r.lapTimes.map(fmtTime).join(' · ') || '—'}</td></tr>`).join('')}
     </table></div>
-    <div class="menu-row bottom">${cup ? (cup.done
+    <div class="menu-row bottom">${ui.net ? (ui.net.isHost
+      ? '<button class="btn go" data-a="lobby" data-focus>↻ Volver a la sala</button><button class="btn" data-a="menu">Salir</button>'
+      : '<button class="btn" disabled>Esperando al anfitrión…</button><button class="btn" data-a="menu" data-focus>Salir</button>') : cup ? (cup.done
       ? '<button class="btn go" data-a="menu" data-focus>⌂ Menú</button>'
       : `<button class="btn go" data-a="next" data-focus>Siguiente carrera ${cup.round + 1}/${cup.tracks.length} ›</button><button class="btn" data-a="menu">Abandonar torneo</button>`) : `
       <button class="btn go" data-a="again" data-focus>↻ Revancha</button>
@@ -98,6 +100,7 @@ export function showResults(ui) {
   ui.click(n, '[data-a]', (e, b) => {
     const a = b.dataset.a;
     if (a === 'again') ui.startRace();
+    if (a === 'lobby') ui.net.backToLobby();
     if (a === 'next') { ui.s.track = cup.tracks[cup.round]; ui.startRace(); }
     if (a === 'track') { ui.game.endRace(); ui.showPauseButton(false); showTrackSelect(ui); }
     if (a === 'menu') ui.exitToMenu();

@@ -9,7 +9,7 @@ export function showPauseMenu(ui) {
       <h2>PAUSA</h2>
       <div class="menu-col">
         <button class="btn big go" data-a="cont" data-focus>▶ Continuar</button>
-        <button class="btn" data-a="restart">↻ Reiniciar carrera</button>
+        ${ui.net ? '<small class="pause-net">Online: la carrera sigue mientras estás aquí</small>' : '<button class="btn" data-a="restart">↻ Reiniciar carrera</button>'}
         <button class="btn" data-a="ctl">🎮 Controles</button>
         <button class="btn" data-a="mute">${muteTxt()}</button>
         <button class="btn" data-a="menu">⌂ Salir al menú</button>

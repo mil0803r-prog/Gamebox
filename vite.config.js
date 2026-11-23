@@ -20,6 +20,7 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).origin !== location.origin) return; // servidor de salas online, etc.: directo a la red
   // páginas: primero la red (así siempre carga la versión nueva); sin conexión, la guardada
   if (e.request.mode === 'navigate') {
     e.respondWith(fetch(e.request).then(res => { const c = res.clone(); caches.open(CACHE).then(k => k.put('./index.html', c)); return res; })

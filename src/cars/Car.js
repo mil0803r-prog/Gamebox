@@ -235,6 +235,28 @@ export class Car {
     if (this.y < gy - 0.5) this.y = gy; // seguridad
   }
 
+  // ---------- red: estado recibido de otro jugador (ya interpolado)
+  // s = { x, y, z, h, vx, vz, vf, st, fl }  fl: bits de derrape/turbo/freno/aire
+  applyNet(s) {
+    this.x = s.x; this.y = s.y; this.z = s.z; this.heading = s.h;
+    this.vx = s.vx; this.vz = s.vz; this.vf = s.vf; this.steer = s.st;
+    const f = s.fl | 0;
+    this.drifting = !!(f & 1); this.driftDir = f & 2 ? 1 : f & 64 ? -1 : 0;
+    this.usingTurbo = !!(f & 4);
+    this.boostTimer = f & 8 ? Math.max(this.boostTimer, 0.1) : 0;
+    this.braking = !!(f & 16); this.airborne = !!(f & 32);
+    const q = this.track.query(this.x, this.z, this.q.hints, this.q, 0.5);
+    this.surface = q.surface;
+    this.progress = q.progress;
+  }
+
+  netState() {
+    const r2 = v => Math.round(v * 100) / 100;
+    const f = (this.drifting ? 1 : 0) | (this.driftDir > 0 ? 2 : 0) | (this.driftDir < 0 ? 64 : 0) | (this.usingTurbo ? 4 : 0)
+      | (this.boostTimer > 0 ? 8 : 0) | (this.braking ? 16 : 0) | (this.airborne ? 32 : 0);
+    return [r2(this.x), r2(this.y), r2(this.z), Math.round(this.heading * 1000) / 1000, r2(this.vx), r2(this.vz), r2(this.vf), Math.round(this.steer * 100) / 100, f];
+  }
+
   // ---------- visual
   updateVisual(dt) {
     const m = this.model;

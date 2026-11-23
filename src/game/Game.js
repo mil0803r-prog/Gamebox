@@ -109,6 +109,7 @@ export class Game {
     this.captureEnvironment(def.theme); // reflejos reales del escenario en la pintura
     this.race = new Race(this.track, cfg.entries, { laps: cfg.laps, items: cfg.items });
     for (const r of this.race.racers) this.scene.add(r.car.model.root);
+    if (cfg.net) cfg.net.attach(this.race); // multijugador online
     // sombras reales (solo con calidad media o alta)
     this.shadows = this.quality.level >= 1 && !cfg.demo;
     this.renderer.shadowMap.enabled = this.shadows;
@@ -119,7 +120,7 @@ export class Game {
     });
     if (cfg.items) { this.items = new Items(this.scene, this.track); this.race.items = this.items; }
     this.pickups = cfg.pickups !== false ? new Pickups(this.scene, this.track) : null;
-    this.traffic = def.traffic ? new Traffic(this.scene, this.track) : null;
+    this.traffic = def.traffic && !cfg.net ? new Traffic(this.scene, this.track) : null; // online sin tráfico (sería distinto en cada equipo)
     this.race.traffic = this.traffic;
     // disparos: solo con monedas en la pista; los humanos usan las armas compradas
     this.weapons = cfg.weapons && this.pickups ? new Weapons(this.scene, this.track, this.race, Profile.data.weapons || []) : null;
@@ -246,6 +247,7 @@ export class Game {
   updateRace(dt, inputs) {
     const race = this.race;
     race.update(dt, inputs, this.ai, this.items, this.pickups, this.weapons);
+    if (this.cfg.net) this.cfg.net.tick(dt, race);
     this.trackScene.update(dt, race.time);
     // cambio de cámara (tecla C / "/" , botón Select del mando o botón táctil)
     this.rigs.forEach((rig, i) => {

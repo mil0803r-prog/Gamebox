@@ -79,3 +79,14 @@ src/
 ```
 
 La guía de teclas en pantalla (PC) se puede ocultar en **Opciones → Mostrar teclas en pantalla**.
+
+## Multijugador online (Wi‑Fi o datos)
+
+Menú principal → **Multijugador**:
+
+- **Mismo equipo**: pantalla dividida para 2 en el mismo dispositivo (se pueden usar mandos Bluetooth).
+- **Crear sala online**: genera un código de 4 letras (y un enlace `?sala=CÓDIGO`). Hasta 4 jugadores, cada uno en su celular o PC; el anfitrión elige pista, vueltas y rivales de la IA.
+- **Unirse a una sala**: escribe el código.
+
+Funciona con WebRTC (PeerJS): los datos van directo entre los equipos; solo para encontrarse se usa el servidor gratuito de PeerJS (`0.peerjs.com`). Para usar uno propio: `npx peerjs --port 9000` y abre el juego con `?peer=tu-servidor:9000`.
+Online no hay disparos ni ítems ni tráfico (las monedas y cajones sí). Bluetooth directo entre celulares no es posible desde un navegador.

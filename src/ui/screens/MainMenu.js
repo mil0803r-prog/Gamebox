@@ -14,6 +14,7 @@ import { showArmory } from './Armory.js';
 import { showTournament } from './Tournament.js';
 import { showMissions } from './Missions.js';
 import { showRewards } from './Rewards.js';
+import { showMultiplayer } from './Multiplayer.js';
 
 // =====================================================================
 //  Menú principal estilo juego de carreras para celular/consola:
@@ -25,6 +26,7 @@ import { showRewards } from './Rewards.js';
 const I = {
   flag: '<path d="M6 3v18" stroke="#fff" stroke-width="1.6"/><path d="M6 4h13l-2.5 4.5L19 13H6z" fill="#fff"/><path d="M6 4h3.25v2.25H6zM12.5 4h3.25v2.25H12.5zM9.25 6.25h3.25v2.25H9.25zM15.75 6.25H18l-.9 2.25h-1.35zM6 8.5h3.25v2.25H6zM12.5 8.5h3.25v2.25H12.5zM9.25 10.75h3.25V13H9.25zM15.75 10.75H18.5L19 13h-3.25z" fill="#111"/>',
   trophy: '<defs><linearGradient id="gt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".5" stop-color="#ffc83a"/><stop offset="1" stop-color="#b8740c"/></linearGradient></defs><path d="M7 3h10v5a5 5 0 01-10 0z" fill="url(#gt)"/><path d="M7 5H3.5c0 3.2 1.6 5 4.2 5.3M17 5h3.5c0 3.2-1.6 5-4.2 5.3" fill="none" stroke="url(#gt)" stroke-width="1.6"/><path d="M11 13h2v4h-2z" fill="url(#gt)"/><path d="M7.5 21h9l-1-3.5h-7z" fill="url(#gt)"/><path d="M12 4.8l.9 1.9 2 .2-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.2z" fill="#fff8d0"/>',
+  globe: '<circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M3 12h18M12 3c2.6 2.5 3.8 5.5 3.8 9s-1.2 6.5-3.8 9c-2.6-2.5-3.8-5.5-3.8-9S9.4 5.5 12 3z" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="18.5" cy="5.5" r="2.6" fill="#2bf07a" stroke="#0b0618" stroke-width="1"/>',
   duo: '<path d="M7 9h10a4 4 0 014 4v1a3 3 0 01-5.2 2l-1.3-1.5h-5l-1.3 1.5A3 3 0 013 14v-1a4 4 0 014-4z" fill="#fff"/><path d="M8 11.3v3.2M6.4 12.9h3.2" stroke="#5b2bd8" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="12.2" r=".9" fill="#ff3b6b"/><circle cx="17.8" cy="14" r=".9" fill="#2bc8ff"/>',
   clock: '<circle cx="12" cy="13.5" r="7.5" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M12 9.5v4.2l2.8 1.8" stroke="#2bf0c0" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M10 3h4M12 3v3M18.5 6.5l1.5-1.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>',
   car: '<path d="M3 15.5v-3l2-4.5c.4-.9 1.2-1.5 2.2-1.5h9.6c1 0 1.8.6 2.2 1.5l2 4.5v3a1 1 0 01-1 1h-1.5a2 2 0 01-4 0H9.5a2 2 0 01-4 0H4a1 1 0 01-1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5.2 11.5h13.6M7 14h1.5M15.5 14H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -63,6 +65,9 @@ export function showMainMenu(ui) {
   ui.showPauseButton(false);
   ui.cup = null;
   ui.rivalsOverride = null;
+  if (ui.net) { ui.net.close(); ui.net = null; }
+  // abrió un enlace de invitación (?sala=ABCD)
+  if (ui.pendingRoom) { const code = ui.pendingRoom; ui.pendingRoom = ''; showMultiplayer(ui, code); return; }
   const s = ui.s;
   const car = carById(s.p1.car);
   const { lv, pct } = level();
@@ -107,8 +112,8 @@ export function showMainMenu(ui) {
       <button class="hm-mode m2" data-a="cup" data-nav style="--bg:${THEME_GRAD.desert}">
         <img data-thumb="${CARS.find(c => c.cls === 'A')?.id || legend.id}" alt=""><span class="hm-mico">${ico('trophy')}</span><b>TORNEOS</b>
       </button>
-      <button class="hm-mode m3" data-a="2" data-nav style="--bg:${THEME_GRAD.snow}">
-        <img data-thumb="${CARS.find(c => c.cls === 'B')?.id || car.id}" alt=""><span class="hm-mico">${ico('duo')}</span><b>2 JUGADORES</b>
+      <button class="hm-mode m3" data-a="mp" data-nav style="--bg:${THEME_GRAD.snow}">
+        <img data-thumb="${CARS.find(c => c.cls === 'B')?.id || car.id}" alt=""><span class="hm-mico">${ico('globe')}</span><b>MULTIJUGADOR</b><i class="hm-live">ONLINE</i>
       </button>
       <button class="hm-mode m4" data-a="tt" data-nav style="--bg:${THEME_GRAD.coast}">
         <img data-thumb="${lineup[Math.floor(lineup.length / 2)].id}" alt=""><span class="hm-mico">${ico('clock')}</span><b>CONTRARRELOJ</b>
@@ -192,6 +197,7 @@ export function showMainMenu(ui) {
     }
     if (a === 'tt') { ui.mode = 1; ui.rivalsOverride = 0; showTrackSelect(ui); }
     if (a === 'cup') showTournament(ui);
+    if (a === 'mp') showMultiplayer(ui);
     if (a === 'legend') showDealer(ui, () => showMainMenu(ui), { filter: 'S', sel: legend.id });
     if (a === 'rewards') showRewards(ui);
     if (a === 'missions') showMissions(ui);

@@ -98,11 +98,31 @@ export class UIManager {
     });
     game.on('raceEvent', e => {
       if (e.type === 'allFinished') setTimeout(() => { if (this.game.race && !this.resultsShown) showResults(this); }, 2600);
+      if (e.type === 'finish' && e.racer.human && this.net) this.net.sendFinish(e.racer);
     });
     game.on('raceTick', () => this.updateSemaphore());
     game.on('frame', dt => this.onFrame(dt));
     window.addEventListener('keydown', e => this.onKey(e));
+    // enlace de invitación: ?sala=ABCD abre "Unirse" directamente
+    this.pendingRoom = (new URLSearchParams(location.search).get('sala') || '').toUpperCase().slice(0, 4);
     showSplash(this);
+  }
+
+  // aviso corto abajo de la pantalla
+  toast(text) {
+    const t = el(`<div class="toast">${text.replace(/</g, '&lt;')}</div>`);
+    document.body.appendChild(t);
+    setTimeout(() => t.classList.add('out'), 2600);
+    setTimeout(() => t.remove(), 3200);
+  }
+
+  // carrera online: la manda el anfitrión a todos
+  startOnline(m) {
+    this.netStart = m;
+    this.mode = 1;
+    this.cup = null;
+    this.s.track = m.track;
+    this.startRace();
   }
 
   // ------------------------------------------------------------ pantallas
@@ -295,7 +315,7 @@ export class UIManager {
     this.enterLandscape();
     const L = this.loading;
     L.querySelector('.ld-bg').style.background = THEME_GRAD[t.theme];
-    L.querySelector('.ld-sub').textContent = this.cup ? `Torneo · carrera ${this.cup.round + 1} de ${this.cup.tracks.length}` : `${t.subtitle} · ${s.laps} vueltas`;
+    L.querySelector('.ld-sub').textContent = this.net && this.netStart ? `Online · ${this.netStart.entries.filter(e => e.kind === 'human').length} jugadores · ${this.netStart.laps} vueltas` : this.cup ? `Torneo · carrera ${this.cup.round + 1} de ${this.cup.tracks.length}` : `${t.subtitle} · ${s.laps} vueltas`;
     L.querySelector('.ld-title').textContent = t.name;
     L.querySelector('.ld-tip').textContent = '💡 ' + TIPS[(Math.random() * TIPS.length) | 0];
     L.classList.remove('hidden', 'out'); void L.offsetWidth; L.classList.add('in');
@@ -309,9 +329,21 @@ export class UIManager {
   startRaceNow() {
     const s = this.s;
     this.game.settings.split = s.split;
-    // en el torneo los rivales son siempre los mismos
-    const entries = this.cup ? (this.cup.entries ||= this.buildEntries()) : this.buildEntries();
-    this.game.startRace({ trackId: TRACKS[s.track].id, laps: this.cup ? this.cup.laps : s.laps, items: s.items, entries, autoAccel: s.autoAccel, steerMode: s.steerMode, pickups: s.pickups !== false, weapons: s.weapons !== false });
+    const m = this.net && this.netStart;
+    if (m) {
+      // online: misma lista de corredores en todos los equipos; los que no son míos son remotos
+      const myId = this.net.myId;
+      const entries = m.entries.map(e => ({
+        car: carById(e.car) || CARS[0], color: e.color, name: e.name, owner: e.owner, aiLevel: m.difficulty,
+        human: e.owner === myId && e.kind === 'human', humanIndex: 0,
+        remote: e.owner !== myId, netHuman: e.kind === 'human' && e.owner !== myId,
+      }));
+      this.game.startRace({ trackId: TRACKS[m.track].id, laps: m.laps, items: false, entries, autoAccel: s.autoAccel, steerMode: s.steerMode, pickups: s.pickups !== false, weapons: false, net: this.net });
+    } else {
+      // en el torneo los rivales son siempre los mismos
+      const entries = this.cup ? (this.cup.entries ||= this.buildEntries()) : this.buildEntries();
+      this.game.startRace({ trackId: TRACKS[s.track].id, laps: this.cup ? this.cup.laps : s.laps, items: s.items, entries, autoAccel: s.autoAccel, steerMode: s.steerMode, pickups: s.pickups !== false, weapons: s.weapons !== false });
+    }
     this.showPauseButton(true);
     this.resultsShown = false;
     this.game.audio?.music(TRACKS[s.track].theme);
@@ -319,6 +351,7 @@ export class UIManager {
 
   exitToMenu() {
     this.cup = null;
+    if (this.net) { this.net.close(); this.net = null; }
     this.game.endRace();
     this.sema.classList.add('hidden');
     this.showPauseButton(false);
@@ -339,6 +372,10 @@ export class UIManager {
   togglePause() {
     const g = this.game;
     if (!g.race || g.isDemo || this.resultsShown) return;
+    if (this.net) { // online no se puede congelar la carrera de los demás
+      if (this.cur && this.cur.classList.contains('pause')) this.screen(null); else showPauseMenu(this);
+      return;
+    }
     if (g.paused) { g.paused = false; this.screen(null); g.audio?.setPaused(false); return; }
     g.paused = true;
     g.audio?.setPaused(true);

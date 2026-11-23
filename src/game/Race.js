@@ -15,6 +15,7 @@ export class Race {
       const car = new Car(track, e.car, e.color, i);
       return {
         index: i, car, name: e.name, human: e.human, humanIndex: e.humanIndex, ai: null, aiLevel: e.aiLevel,
+        remote: !!e.remote, netHuman: !!e.netHuman, dropped: false, owner: e.owner,
         lap: 0, nextCp: this.numCp, lapStart: 0, lapTimes: [], finished: false, finishTime: 0, place: i + 1,
         prevProgress: 0, wrongWay: 0, coins: 0, bonus: 0, color: e.color, carDef: e.car, raceDist: 0, padCooldown: 0,
       };
@@ -61,7 +62,7 @@ export class Race {
 
     // entradas por corredor
     const ins = this.racers.map(r => {
-      if (!racing) return zero;
+      if (!racing || r.remote) return zero;
       if (r.finished && r.human) {
         // al terminar, la IA conduce el auto del jugador
         return aiSystem ? aiSystem.control(r, this, dt) : zero;
@@ -74,10 +75,11 @@ export class Race {
       const c = r.car;
       c.ev.wall = 0; c.ev.land = 0; c.ev.miniTurbo = 0; c.ev.pad = false; c.ev.bump = 0; c.ev.backfire = false;
     }
+    if (this.net) this.net.applyRemote(this); // autos de otros jugadores (online)
     const steps = Math.max(1, Math.ceil(dt / SUB));
     const h = dt / steps;
     for (let s = 0; s < steps; s++) {
-      for (let i = 0; i < this.racers.length; i++) this.racers[i].car.step(h, ins[i], this.time);
+      for (let i = 0; i < this.racers.length; i++) if (!this.racers[i].remote) this.racers[i].car.step(h, ins[i], this.time);
       this.collideCars();
     }
     if (this.traffic) this.traffic.update(dt, this);
@@ -103,14 +105,17 @@ export class Race {
     for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) {
       const a = rs[i].car, b = rs[j].car;
       if (Math.abs(a.y - b.y) > 2) continue;
+      if (rs[i].remote && rs[j].remote) continue;
+      if (rs[i].dropped || rs[j].dropped) continue;
       // dos círculos por auto (delante y detrás) para que se sienta más largo
       let dx = b.x - a.x, dz = b.z - a.z;
       const d = Math.hypot(dx, dz);
       const minD = R * 2.15;
       if (d >= minD || d < 1e-4) continue;
       const nx = dx / d, nz = dz / d;
-      const ima = a.shieldTimer > 0 ? 0.15 : 1 / a.mass;
-      const imb = b.shieldTimer > 0 ? 0.15 : 1 / b.mass;
+      // un auto remoto lo mueve su dueño: aquí es como una pared que se mueve (masa infinita)
+      const ima = rs[i].remote ? 0 : a.shieldTimer > 0 ? 0.15 : 1 / a.mass;
+      const imb = rs[j].remote ? 0 : b.shieldTimer > 0 ? 0.15 : 1 / b.mass;
       const sum = ima + imb;
       const overlap = minD - d;
       a.x -= nx * overlap * ima / sum; a.z -= nz * overlap * ima / sum;
@@ -224,8 +229,10 @@ export class Race {
   updatePlaces() {
     const unfinished = this.racers.filter(r => !r.finished).sort((a, b) => b.raceDist - a.raceDist);
     unfinished.forEach((r, i) => { r.place = this.finishOrder.length + i + 1; });
-    const humans = this.racers.filter(r => r.human);
-    if (this.state === 'racing' && humans.length && humans.every(r => r.finished)) {
+    // online: se espera a todos los jugadores conectados (máx. 45 s después del primero)
+    const humans = this.racers.filter(r => r.human || (r.netHuman && !r.dropped));
+    const timeout = this.net && this.finishOrder.length && this.time - this.finishOrder[0].finishTime > 45 && this.racers.some(r => r.human && r.finished);
+    if (this.state === 'racing' && humans.length && (humans.every(r => r.finished) || timeout)) {
       this.state = 'finished';
       this.finishedAt = this.time;
       this.events.push({ type: 'allFinished' });
