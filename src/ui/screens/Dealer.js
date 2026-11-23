@@ -8,10 +8,10 @@ import { showMainMenu } from './MainMenu.js';
 const SPEC_BARS = [['speed', 'Velocidad'], ['accel', 'Aceleración'], ['handling', 'Manejo'], ['turbo', 'Turbo']];
 
 // Concesionario: comprar autos con el dinero ganado en las carreras
-export function showDealer(ui, back) {
+export function showDealer(ui, back, opts = {}) {
   const goBack = back || (() => showMainMenu(ui));
-  let filter = 'all';
-  let sel = CARS.find(c => !Profile.owns(c.id) && c.price > 0) || CARS[0];
+  let filter = opts.filter || 'all';
+  let sel = (opts.sel && CARS.find(c => c.id === opts.sel)) || CARS.find(c => !Profile.owns(c.id) && c.price > 0) || CARS[0];
   const n = el(`<div class="screen dealer">
     <header class="scr-head"><span class="step">COMPRA, COLECCIONA Y CORRE</span><h2>CONCESIONARIO</h2></header>
     <div class="dealer-body">
@@ -30,8 +30,8 @@ export function showDealer(ui, back) {
       </section>
       <section class="lot">
         <div class="tabs">
-          <button class="tab on" data-f="all">Todos</button>
-          ${Object.entries(CLASSES).map(([k, c]) => `<button class="tab" data-f="${k}" style="--cc:${c.color}">${k} · ${c.name}</button>`).join('')}
+          <button class="tab ${filter === 'all' ? 'on' : ''}" data-f="all">Todos</button>
+          ${Object.entries(CLASSES).map(([k, c]) => `<button class="tab ${filter === k ? 'on' : ''}" data-f="${k}" style="--cc:${c.color}">${k} · ${c.name}</button>`).join('')}
           <button class="tab" data-f="own">Mi garaje</button>
         </div>
         <div class="lot-grid"></div>

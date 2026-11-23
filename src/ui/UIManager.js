@@ -114,6 +114,7 @@ export class UIManager {
     // barrido diagonal al cambiar entre pantallas completas
     if (node && this.cur && !opts.overlay && !this.cur.classList.contains('overlay')) this.playWipe();
     this.root.classList.toggle('in-menu', !!node && !opts.overlay);
+    this.root.classList.remove('home-on');
     if (this.cur) {
       const old = this.cur;
       old.classList.add('leaving');
@@ -266,7 +267,7 @@ export class UIManager {
       usedPaint.add(paintOf(ps[i])); usedCar.add(car.id);
     }
     // rivales de la IA: autos de rendimiento parecido al mejor auto humano (más fuertes en difícil)
-    const riv = this.mode === 1 ? s.rivals1p : s.rivals2p;
+    const riv = this.rivalsOverride ?? (this.mode === 1 ? s.rivals1p : s.rivals2p);
     const ranked = CARS.slice().sort((a, b) => a.pi - b.pi);
     const best = Math.max(...entries.map(e => ranked.indexOf(e.car)));
     const range = [[-3, 0], [-2, 2], [0, 4]][s.difficulty];
@@ -294,7 +295,7 @@ export class UIManager {
     this.enterLandscape();
     const L = this.loading;
     L.querySelector('.ld-bg').style.background = THEME_GRAD[t.theme];
-    L.querySelector('.ld-sub').textContent = `${t.subtitle} · ${s.laps} vueltas`;
+    L.querySelector('.ld-sub').textContent = this.cup ? `Torneo · carrera ${this.cup.round + 1} de ${this.cup.tracks.length}` : `${t.subtitle} · ${s.laps} vueltas`;
     L.querySelector('.ld-title').textContent = t.name;
     L.querySelector('.ld-tip').textContent = '💡 ' + TIPS[(Math.random() * TIPS.length) | 0];
     L.classList.remove('hidden', 'out'); void L.offsetWidth; L.classList.add('in');
@@ -308,13 +309,16 @@ export class UIManager {
   startRaceNow() {
     const s = this.s;
     this.game.settings.split = s.split;
-    this.game.startRace({ trackId: TRACKS[s.track].id, laps: s.laps, items: s.items, entries: this.buildEntries(), autoAccel: s.autoAccel, steerMode: s.steerMode, pickups: s.pickups !== false, weapons: s.weapons !== false });
+    // en el torneo los rivales son siempre los mismos
+    const entries = this.cup ? (this.cup.entries ||= this.buildEntries()) : this.buildEntries();
+    this.game.startRace({ trackId: TRACKS[s.track].id, laps: this.cup ? this.cup.laps : s.laps, items: s.items, entries, autoAccel: s.autoAccel, steerMode: s.steerMode, pickups: s.pickups !== false, weapons: s.weapons !== false });
     this.showPauseButton(true);
     this.resultsShown = false;
     this.game.audio?.music(TRACKS[s.track].theme);
   }
 
   exitToMenu() {
+    this.cup = null;
     this.game.endRace();
     this.sema.classList.add('hidden');
     this.showPauseButton(false);

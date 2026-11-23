@@ -35,7 +35,7 @@ function trackPreview(ui, def) {
 export function showTrackSelect(ui) {
   const s = ui.s;
   const n = el(`<div class="screen tracks">
-    <header class="scr-head"><span class="step">PASO 2 / 2</span><h2>ELIGE LA PISTA</h2></header>
+    <header class="scr-head"><span class="step">${ui.rivalsOverride === 0 ? 'CONTRARRELOJ · TÚ CONTRA EL RELOJ' : 'PASO 2 / 2'}</span><h2>ELIGE LA PISTA</h2></header>
     <div class="cards">${TRACKS.map((t, i) => {
       const pv = trackPreview(ui, t);
       const rec = Records.get(t.id);
@@ -49,8 +49,8 @@ export function showTrackSelect(ui) {
     }).join('')}</div>
     <div class="opts">
       <div class="opt"><span>Vueltas</span><div class="stepper"><button class="btn sm" data-o="laps-">−</button><b class="v-laps"></b><button class="btn sm" data-o="laps+">+</button></div></div>
-      <div class="opt"><span>Rivales IA</span><div class="stepper"><button class="btn sm" data-o="riv-">−</button><b class="v-riv"></b><button class="btn sm" data-o="riv+">+</button></div></div>
-      <div class="opt o-diff"><span>Dificultad IA</span><div class="seg" data-o="diff">${DIFF.map((d, i) => `<button class="segb" data-v="${i}">${d}</button>`).join('')}</div></div>
+      <div class="opt o-riv ${ui.rivalsOverride === 0 ? 'hidden' : ''}"><span>Rivales IA</span><div class="stepper"><button class="btn sm" data-o="riv-">−</button><b class="v-riv"></b><button class="btn sm" data-o="riv+">+</button></div></div>
+      <div class="opt o-diff ${ui.rivalsOverride === 0 ? 'hidden' : ''}"><span>Dificultad IA</span><div class="seg" data-o="diff">${DIFF.map((d, i) => `<button class="segb" data-v="${i}">${d}</button>`).join('')}</div></div>
       <div class="opt"><span>Monedas y cajones 🪙</span><div class="seg" data-o="pickups"><button class="segb" data-v="0">No</button><button class="segb" data-v="1">Sí</button></div></div>
       <div class="opt o-weap"><span>Disparos 🎯</span><div class="seg" data-o="weapons"><button class="segb" data-v="0">No</button><button class="segb" data-v="1">Sí</button></div></div>
       <div class="opt"><span>Ítems en pista</span><div class="seg" data-o="items"><button class="segb" data-v="0">No</button><button class="segb" data-v="1">Sí</button></div></div>

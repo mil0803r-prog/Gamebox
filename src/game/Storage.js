@@ -39,7 +39,7 @@ export const Records = {
 // ---------------------------------------------------------------- dinero y garaje
 export const START_MONEY = 25000;
 export const Profile = {
-  data: load(KEY_PRO, { money: START_MONEY, owned: ['pulga', 'rayo'], earned: 0, weapons: [] }),
+  data: load(KEY_PRO, { money: START_MONEY, owned: ['pulga', 'rayo'], earned: 0, weapons: [], name: 'Piloto', stats: {}, claimed: [], daily: { last: '', streak: 0 } }),
   save() { save(KEY_PRO, this.data); },
   owns(id) { return this.data.owned.includes(id); },
   canAfford(price) { return this.data.money >= price; },
@@ -58,6 +58,9 @@ export const Profile = {
     this.save();
     return true;
   },
+  // estadísticas para misiones (carreras, victorias, monedas...)
+  stat(k, n = 1) { const st = (this.data.stats ||= {}); st[k] = (st[k] || 0) + n; this.save(); },
+  get stats() { return this.data.stats || {}; },
   earn(n) { this.data.money += n; this.data.earned = (this.data.earned || 0) + n; this.save(); },
 };
 
